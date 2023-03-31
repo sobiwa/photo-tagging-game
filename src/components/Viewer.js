@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import bosch from '../assets/paintings/bosch-earthly-delights.jpg';
 
 const imgSrc = bosch;
 
 export default function Viewer() {
+  const prevLensSize = useRef(null);
   const viewerContainerRef = useRef(null);
   const imgRef = useRef(null);
   const zoomWindowRef = useRef(null);
@@ -88,39 +90,20 @@ export default function Viewer() {
     );
   }
 
-  function adjustZoom(e) {
-    const { code } = e;
-    switch (code) {
-      case 'ArrowDown':
-      case 'Minus':
-        setLensSize((prev) => {
-          if (prev >= 100) return prev;
-          setLensPosition((previousPos) => ({
-            x: previousPos.x - 2.5,
-            y: previousPos.y - 2.5,
-          }));
-          return prev + 10;
-        });
-        break;
-      case 'ArrowUp':
-      case 'Equal':
-      case 'Plus':
-        setLensSize((prev) => {
-          if (prev <= 10) return prev;
-          setLensPosition((previousPos) => ({
-            x: previousPos.x + 2.5,
-            y: previousPos.y + 2.5,
-          }));
-          return prev - 10;
-        });
-        break;
-      default:
-        break;
-    }
-  }
+  // useEffect(() => {
+  //   if (lensSize > prevLensSize.current) {
+
+  //   }
+  //   setLensPosition(prev => ({
+  //     x: lensSize
+
+  //   }))
+
+  // }, [lensSize])
 
   const handleMousedown = (e) => {
     // if (!zoomWindowDrag.current) return;
+    e.preventDefault();
     dragStartPos.current = getCursorPos(
       e,
       zoomWindowRef.current.getBoundingClientRect()
@@ -144,6 +127,44 @@ export default function Viewer() {
   };
 
   useEffect(() => {
+    function adjustZoom(e) {
+      let adjustPos;
+      const { code } = e;
+      switch (code) {
+        case 'ArrowDown':
+        case 'Minus':
+          e.preventDefault();
+          flushSync(() => {
+            setLensSize((prev) => {
+              if (prev >= 100) return prev;
+              adjustPos = 'grow';
+              return prev + 10;
+            });
+          });
+          break;
+        case 'ArrowUp':
+        case 'Equal':
+        case 'Plus':
+          e.preventDefault();
+          flushSync(() => {
+            setLensSize((prev) => {
+              if (prev <= 10) return prev;
+              adjustPos = 'shrink';
+              return prev - 10;
+            });
+          });
+          break;
+        default:
+          break;
+      }
+      if (adjustPos) {
+        setLensPosition((prev) => ({
+          x: adjustPos === 'grow' ? prev.x - 5 : prev.x + 5,
+          y: adjustPos === 'grow' ? prev.y - 5 : prev.y + 5,
+        }));
+      }
+    }
+
     window.addEventListener('keydown', adjustZoom);
     return () => {
       window.removeEventListener('keydown', adjustZoom);
@@ -182,9 +203,11 @@ export default function Viewer() {
                 imgProperties.height * zoomRatio.y
               }px`
             : 'auto',
-          backgroundPosition: zoomRatio ? `-${lensPosition.x * zoomRatio.x}px -${
-            lensPosition.y * zoomRatio.y
-          }px` : '',
+          backgroundPosition: zoomRatio
+            ? `-${lensPosition.x * zoomRatio.x}px -${
+                lensPosition.y * zoomRatio.y
+              }px`
+            : '',
           left: `${zoomWindowPosition.x}px`,
           top: `${zoomWindowPosition.y}px`,
         }}
