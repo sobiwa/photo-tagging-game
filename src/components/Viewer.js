@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import bosch from '../assets/paintings/bosch-earthly-delights.jpg';
 
 const imgSrc = bosch;
@@ -8,16 +8,13 @@ export default function Viewer() {
   const imgRef = useRef(null);
   const zoomWindowRef = useRef(null);
   const zoomLensRef = useRef(null);
-  const mouseCoordinates = useRef(null);
   const dragStartPos = useRef(null);
   const zoomWindowDrag = useRef(false);
   const zoomWindowDragging = useRef(false);
 
-  // const [zoomWindowDrag, setZoomWindowDrag] = useState(false);
   const [zoomWindowPosition, setZoomWindowPosition] = useState({ x: 0, y: 0 });
   const [lensSize, setLensSize] = useState(40);
   const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
-  // const [zoomWindowDragging, setZoomWindowDragging] = useState(false);
 
   const imgProperties = imgRef.current?.getBoundingClientRect();
   const zoomRatio =
@@ -56,9 +53,6 @@ export default function Viewer() {
     let x;
     let y;
     if (offset) {
-      console.log(relativeWindow);
-      console.log(offset);
-      console.log(pos.x, pos.y);
       x = pos.x - offset.x;
       y = pos.y - offset.y;
     } else {
@@ -82,15 +76,6 @@ export default function Viewer() {
     setter({ x, y });
   }
 
-  // const moveLens = moveWindow(
-  //   {
-  //     width: zoomLensRef.current?.offsetWidth,
-  //     height: zoomLensRef.current?.offsetHeight,
-  //   },
-  //   imgProperties,
-  //   setLensPosition
-  // );
-
   function handleMoveLens(e) {
     moveWindow(
       {
@@ -102,52 +87,6 @@ export default function Viewer() {
       e
     );
   }
-
-  // const moveZoomWindow = moveWindow(
-  //   zoomWindowRef.current?.getBoundingClientRect(),
-  //   viewerContainerProperties,
-  //   setZoomWindowPosition
-  // );
-
-  // function moveLens(e) {
-  //   if (!imgProperties) return;
-  //   const imgWidth = imgProperties.width;
-  //   const imgHeight = imgProperties.height;
-  //   const lensWidth = zoomLensRef.current.offsetWidth;
-  //   const lensHeight = zoomLensRef.current.offsetHeight;
-  //   /* Prevent any other actions that may occur when moving over the image */
-  //   e.preventDefault?.();
-  //   /* Get the cursor's x and y positions: */
-  //   const pos = getCursorPos(e);
-  //   /* Calculate the position of the lens: */
-  //   let x = pos.x - lensWidth / 2;
-  //   let y = pos.y - lensHeight / 2;
-  //   /* Prevent the lens from being positioned outside the image: */
-  //   if (x > imgWidth - lensWidth) {
-  //     x = imgWidth - lensWidth;
-  //   }
-  //   if (x < 0) {
-  //     x = 0;
-  //   }
-  //   if (y > imgHeight - lensHeight) {
-  //     y = imgHeight - lensHeight;
-  //   }
-  //   if (y < 0) {
-  //     y = 0;
-  //   }
-  //   /* Set the position of the lens: */
-  //   setLensPosition({ x, y });
-  // }
-
-  // useLayoutEffect(() => {
-  //   setViewerContainerProperties(
-  //     viewerContainerRef.current.getBoundingClientRect()
-  //   );
-  // }, []);
-
-  // useLayoutEffect(() => {
-  //   setZoomWindowProperties(zoomWindowRef.current.getBoundingClientRect());
-  // }, [zoomWindowPosition]);
 
   function adjustZoom(e) {
     const { code } = e;
@@ -180,13 +119,8 @@ export default function Viewer() {
     }
   }
 
-  function recordMouseCoordinates(e) {
-    const { pageX, pageY } = e;
-    mouseCoordinates.current = { pageX, pageY };
-  }
-
   const handleMousedown = (e) => {
-    if (!zoomWindowDrag.current) return;
+    // if (!zoomWindowDrag.current) return;
     dragStartPos.current = getCursorPos(
       e,
       zoomWindowRef.current.getBoundingClientRect()
@@ -194,10 +128,8 @@ export default function Viewer() {
     zoomWindowDragging.current = true;
   };
 
-  const handleMouseMove = (e) => {
+  const handleMousemove = (e) => {
     if (!zoomWindowDragging.current) return;
-    console.log('okay');
-    // moveZoomWindow(e, dragStartPos.current);
     moveWindow(
       zoomWindowRef.current.getBoundingClientRect(),
       viewerContainerRef.current.getBoundingClientRect(),
@@ -207,31 +139,16 @@ export default function Viewer() {
     );
   };
 
-  const handleMouseup = (e) => {
+  const handleMouseup = () => {
     zoomWindowDragging.current = false;
   };
 
   useEffect(() => {
-    console.log('listeners added');
     window.addEventListener('keydown', adjustZoom);
-    window.addEventListener('mouseup', handleMouseup);
-    window.addEventListener('mousedown', handleMousedown);
-    window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('keydown', adjustZoom);
-      window.removeEventListener('mouseup', handleMouseup);
-      window.removeEventListener('mousedown', handleMousedown);
-      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
-
-  function handleDragEnd(e) {
-    if (!zoomWindowDrag) return;
-    moveZoomWindow(e, dragStartPos.current);
-  }
-
-  // find cursor position relative to zoomWindow predrag (top, left)
-  // drag-end - find current cursor position, subtract initial cursor position
 
   return (
     <div ref={viewerContainerRef} className='viewer-container'>
@@ -241,17 +158,12 @@ export default function Viewer() {
           className='viewer--img'
           src={imgSrc}
           alt='beautiful painting'
-          onMouseMove={handleMoveLens}
-          onTouchMove={handleMoveLens}
-          // onLoad={() =>
-          //   setImgProperties(imgRef.current.getBoundingClientRect())
-          // }
+          onPointerMove={handleMoveLens}
         />
         <div
           ref={zoomLensRef}
           className='viewer--zoom-lens'
-          onMouseMove={handleMoveLens}
-          onTouchMove={handleMoveLens}
+          onPointerMove={handleMoveLens}
           style={{
             width: `${lensSize}px`,
             height: `${lensSize}px`,
@@ -282,6 +194,12 @@ export default function Viewer() {
         onMouseLeave={() => {
           zoomWindowDrag.current = false;
         }}
+        onPointerDown={handleMousedown}
+        onPointerMove={handleMousemove}
+        onPointerUp={handleMouseup}
+        onPointerLeave={handleMouseup}
+        onPointerOut={handleMouseup}
+        onPointerCancel={handleMouseup}
       />
     </div>
   );
