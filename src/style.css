@@ -38,16 +38,75 @@ body {
 
 .viewer--zoom-lens {
   position: absolute;
-  border: 1px solid #d4d4d4;
+  border: 1px solid #d4d4d4a3;
+  border-radius: 5%;
   /* cursor: none; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.viewer--zoom-result {
+.reticle {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(166, 1, 1, 0.518);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.viewer--zoom-window {
   position: absolute;
   border: 1px solid #d4d4d4;
-  /*set the size of the result div:*/
-  width: 300px;
-  height: 300px;
-  bottom: 20px;
-  left: 20px;
+  cursor: move;
+  display: flex;
+  overflow: hidden;
+  border-radius: 5%;
+}
+
+.viewer--zoom-window:active {
+  cursor: grabbing;
+}
+
+.viewer--zoom-window:hover .viewer--zoom-window-size {
+  opacity: 1;
+}
+
+.viewer--zoom-window-size {
+  --resizer-size: clamp(30px, 20%, 50px);
+  width: var(--resizer-size);
+  height: var(--resizer-size);
+  background-color: rgba(192, 192, 192, 0.704);
+  margin: auto 0 0 auto;
+  rotate: 45deg;
+  translate: 50% 50%;
+  position: relative;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.viewer--zoom-window-size:active {
+  cursor: grabbing;
+}
+
+.viewer--zoom-window-size::before,
+.viewer--zoom-window-size::after {
+  content: '';
+  position: absolute;
+  background-color: black;
+  width: 1px;
+  border-radius: 5px;
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
+}
+
+.viewer--zoom-window-size::before {
+  height: 66%;
+  left: 8%;
+}
+
+.viewer--zoom-window-size::after {
+  height: 40%;
+  left: 18%;
 }

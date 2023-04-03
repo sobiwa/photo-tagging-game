@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import bosch from '../assets/paintings/bosch-earthly-delights.jpg';
@@ -5,15 +6,18 @@ import bosch from '../assets/paintings/bosch-earthly-delights.jpg';
 const imgSrc = bosch;
 
 export default function Viewer() {
-  const prevLensSize = useRef(null);
   const viewerContainerRef = useRef(null);
   const imgRef = useRef(null);
   const zoomWindowRef = useRef(null);
   const zoomLensRef = useRef(null);
   const dragStartPos = useRef(null);
-  const zoomWindowDrag = useRef(false);
+  const resizeStartPos = useRef(null);
   const zoomWindowDragging = useRef(false);
+  const zoomWindowResizing = useRef(false);
+  const zoomWindowResizeRef = useRef(null);
+  const zoomWindowOriginalSize = useRef(null);
 
+  const [zoomWindowSize, setZoomWindowSize] = useState(300);
   const [zoomWindowPosition, setZoomWindowPosition] = useState({ x: 0, y: 0 });
   const [lensSize, setLensSize] = useState(40);
   const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
@@ -90,29 +94,24 @@ export default function Viewer() {
     );
   }
 
-  // useEffect(() => {
-  //   if (lensSize > prevLensSize.current) {
-
-  //   }
-  //   setLensPosition(prev => ({
-  //     x: lensSize
-
-  //   }))
-
-  // }, [lensSize])
-
   const handleMousedown = (e) => {
-    // if (!zoomWindowDrag.current) return;
-    e.preventDefault();
+    // e.preventDefault();
+    console.log('fuck');
     dragStartPos.current = getCursorPos(
       e,
       zoomWindowRef.current.getBoundingClientRect()
     );
     zoomWindowDragging.current = true;
+    zoomWindowRef.current.setPointerCapture(e.pointerId);
   };
+
+  // get cursor position on start
+  // track cursor movement difference from start
+  // resize according to difference with limits considered
 
   const handleMousemove = (e) => {
     if (!zoomWindowDragging.current) return;
+    // e.preventDefault();
     moveWindow(
       zoomWindowRef.current.getBoundingClientRect(),
       viewerContainerRef.current.getBoundingClientRect(),
@@ -124,6 +123,31 @@ export default function Viewer() {
 
   const handleMouseup = () => {
     zoomWindowDragging.current = false;
+  };
+
+  const handleMousedownResize = (e) => {
+    e.stopPropagation();
+    zoomWindowOriginalSize.current = zoomWindowRef.current.offsetWidth;
+    const { pageX: x, pageY: y } = e;
+    resizeStartPos.current = { x, y };
+    zoomWindowResizing.current = true;
+    zoomWindowResizeRef.current.setPointerCapture(e.pointerId);
+  };
+
+  const handleMousemoveResize = (e) => {
+    e.stopPropagation();
+    if (!zoomWindowResizing.current) return;
+    const { pageX: x, pageY: y } = e;
+    const { x: prevX, y: prevY } = resizeStartPos.current;
+    const xDiff = x - prevX;
+    const yDiff = y - prevY;
+    const greatestDiff = Math.abs(xDiff) > Math.abs(yDiff) ? xDiff : yDiff;
+    const newSize = zoomWindowOriginalSize.current + greatestDiff;
+    setZoomWindowSize(newSize < 50 ? 50 : newSize > 400 ? 400 : newSize);
+  };
+
+  const handleMouseupResize = () => {
+    zoomWindowResizing.current = false;
   };
 
   useEffect(() => {
@@ -191,12 +215,16 @@ export default function Viewer() {
             left: `${lensPosition.x}px`,
             top: `${lensPosition.y}px`,
           }}
-        />
+        >
+          <div className='reticle' />
+        </div>
       </div>
       <div
         ref={zoomWindowRef}
-        className='viewer--zoom-result'
+        className='viewer--zoom-window'
         style={{
+          width: zoomWindowSize,
+          height: zoomWindowSize,
           backgroundImage: `url(${imgSrc})`,
           backgroundSize: imgProperties
             ? `${imgProperties.width * zoomRatio.x}px ${
@@ -211,19 +239,24 @@ export default function Viewer() {
           left: `${zoomWindowPosition.x}px`,
           top: `${zoomWindowPosition.y}px`,
         }}
-        onMouseEnter={() => {
-          zoomWindowDrag.current = true;
-        }}
-        onMouseLeave={() => {
-          zoomWindowDrag.current = false;
-        }}
         onPointerDown={handleMousedown}
         onPointerMove={handleMousemove}
         onPointerUp={handleMouseup}
         onPointerLeave={handleMouseup}
         onPointerOut={handleMouseup}
         onPointerCancel={handleMouseup}
-      />
+      >
+        <div
+          ref={zoomWindowResizeRef}
+          className='viewer--zoom-window-size'
+          onPointerDown={handleMousedownResize}
+          onPointerMove={handleMousemoveResize}
+          onPointerUp={handleMouseupResize}
+          onPointerLeave={handleMouseupResize}
+          onPointerOut={handleMouseupResize}
+          // onPointerCancel={handleMouseupResize}
+        />
+      </div>
     </div>
   );
 }
