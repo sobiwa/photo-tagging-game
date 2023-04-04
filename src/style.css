@@ -25,10 +25,15 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .viewer--img-container {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* height: 100vh; */
 }
 
 .viewer--img-container img {
@@ -44,14 +49,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 
 .reticle {
   width: 30px;
   height: 30px;
-  border: 1px solid rgba(166, 1, 1, 0.518);
+  border: 1px solid #a6010184;
   border-radius: 50%;
   flex-shrink: 0;
+  pointer-events: none;
+}
+
+.zoom-window-reticle {
+  border-radius: 50%;
+  flex: 0 0 auto;
+  position: absolute;
+  pointer-events: none;
 }
 
 .viewer--zoom-window {
@@ -59,6 +73,8 @@ body {
   border: 1px solid #d4d4d4;
   cursor: move;
   display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   border-radius: 5%;
 }

@@ -1,9 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import Viewer from './components/Viewer.js';
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import Viewer from './components/Viewer';
 import './style.css';
 
 const firebaseConfig = {
@@ -16,8 +16,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-// const firebase = initializeApp(firebaseConfig);
-// const db = getFirestore(firebase);
+const firebase = initializeApp(firebaseConfig);
+const db = getFirestore(firebase);
+
+export async function findWaldos(painting) {
+  const docRef = doc(db, `paintings/${painting}`);
+  const docSnap = await getDoc(docRef);
+  return docSnap.data();
+}
 
 const router = createHashRouter([
   {

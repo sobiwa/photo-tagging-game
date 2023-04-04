@@ -1,15 +1,21 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable no-nested-ternary */
 import { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
-import bosch from '../assets/paintings/bosch-earthly-delights.jpg';
+import bosch from '../assets/paintings/bosch-the-haywain-triptych.jpg';
+// import bosch from '../assets/paintings/bosch-earthly-delights.jpg';
+import { findWaldos } from '..';
 
 const imgSrc = bosch;
+const imgTitle = 'earthly-delights';
 
 export default function Viewer() {
   const viewerContainerRef = useRef(null);
   const imgRef = useRef(null);
   const zoomWindowRef = useRef(null);
   const zoomLensRef = useRef(null);
+  const reticleRef = useRef(null);
   const dragStartPos = useRef(null);
   const resizeStartPos = useRef(null);
   const zoomWindowDragging = useRef(false);
@@ -17,12 +23,24 @@ export default function Viewer() {
   const zoomWindowResizeRef = useRef(null);
   const zoomWindowOriginalSize = useRef(null);
 
+  const [waldos, setWaldos] = useState([]);
   const [zoomWindowSize, setZoomWindowSize] = useState(300);
   const [zoomWindowPosition, setZoomWindowPosition] = useState({ x: 0, y: 0 });
   const [lensSize, setLensSize] = useState(40);
   const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
+  // const [imgProperties, setImgProperties] = useState(imgRef.current?.getBoundingClientRect());
 
   const imgProperties = imgRef.current?.getBoundingClientRect();
+
+  async function setNewWaldos() {
+    const newWaldos = await findWaldos(imgTitle);
+    console.log(newWaldos);
+    setWaldos(newWaldos.waldos);
+  }
+  useEffect(() => {
+    setNewWaldos();
+  }, []);
+
   const zoomRatio =
     zoomWindowRef.current && zoomLensRef.current
       ? {
@@ -33,6 +51,34 @@ export default function Viewer() {
             zoomLensRef.current.offsetHeight,
         }
       : null;
+  const reticleZoomSize =
+    zoomLensRef.current && reticleRef.current && zoomWindowRef.current
+      ? {
+          x:
+            zoomWindowRef.current.offsetWidth *
+            (reticleRef.current.offsetWidth / zoomLensRef.current.offsetWidth),
+          y:
+            zoomWindowRef.current.offsetHeight *
+            (reticleRef.current.offsetHeight /
+              zoomLensRef.current.offsetHeight),
+        }
+      : null;
+
+  // assess window.innerHeight and window.innerWidth;
+  // if ratio of img (height:width) exceeds window, height: 100%, width: auto
+
+  const windowRatio = window.innerHeight / window.innerWidth;
+  const imgRatio = imgProperties
+    ? imgProperties.height / imgProperties.width
+    : null;
+  const imgDimensions = imgRatio
+    ? imgRatio > windowRatio
+      ? {
+          width: 'auto',
+          height: '100vh',
+        }
+      : { width: '100%', height: 'auto' }
+    : null;
 
   function getCursorPos(e, relativeWindow) {
     let x = 0;
@@ -41,20 +87,27 @@ export default function Viewer() {
     x = e.pageX - relativeWindow.left;
     y = e.pageY - relativeWindow.top;
     /* Consider any page scrolling: */
-    x -= window.pageXOffset;
-    y -= window.pageYOffset;
+    x -= window.scrollX;
+    y -= window.scrollY;
     return { x, y };
   }
 
   function moveWindow(window, relativeWindow, setter, e, offset) {
     if (!relativeWindow) return;
-    const { width: relativeWindowWidth, height: relativeWindowHeight } =
-      relativeWindow;
+    const {
+      width: relativeWindowWidth,
+      height: relativeWindowHeight,
+      left: relativeWindowLeft,
+      top: relativeWindowTop,
+    } = relativeWindow.getBoundingClientRect();
     const { width: windowWidth, height: windowHeight } = window;
     /* Prevent any other actions that may occur when moving over the image */
     e.preventDefault?.();
     /* Get the cursor's x and y positions: */
-    const pos = getCursorPos(e, relativeWindow);
+    const pos = getCursorPos(e, {
+      left: relativeWindowLeft,
+      top: relativeWindowTop,
+    });
     /* Calculate the position of the lens: */
     let x;
     let y;
@@ -88,7 +141,7 @@ export default function Viewer() {
         width: zoomLensRef.current?.offsetWidth,
         height: zoomLensRef.current?.offsetHeight,
       },
-      imgRef.current.getBoundingClientRect(),
+      imgRef.current,
       setLensPosition,
       e
     );
@@ -96,7 +149,6 @@ export default function Viewer() {
 
   const handleMousedown = (e) => {
     // e.preventDefault();
-    console.log('fuck');
     dragStartPos.current = getCursorPos(
       e,
       zoomWindowRef.current.getBoundingClientRect()
@@ -105,16 +157,12 @@ export default function Viewer() {
     zoomWindowRef.current.setPointerCapture(e.pointerId);
   };
 
-  // get cursor position on start
-  // track cursor movement difference from start
-  // resize according to difference with limits considered
-
   const handleMousemove = (e) => {
     if (!zoomWindowDragging.current) return;
     // e.preventDefault();
     moveWindow(
       zoomWindowRef.current.getBoundingClientRect(),
-      viewerContainerRef.current.getBoundingClientRect(),
+      viewerContainerRef.current,
       setZoomWindowPosition,
       e,
       dragStartPos.current
@@ -149,6 +197,11 @@ export default function Viewer() {
   const handleMouseupResize = () => {
     zoomWindowResizing.current = false;
   };
+
+  function handleImageResize() {
+    console.log(imgRef.current?.getBoundingClientRect());
+    setImgProperties(imgRef.current?.getBoundingClientRect())
+  }
 
   useEffect(() => {
     function adjustZoom(e) {
@@ -190,20 +243,70 @@ export default function Viewer() {
     }
 
     window.addEventListener('keydown', adjustZoom);
+    // window.addEventListener('resize', handleImageResize);
     return () => {
       window.removeEventListener('keydown', adjustZoom);
+      // window.removeEventListener('resize', handleImageResize);
     };
   }, []);
+
+  // if x > 0.345 && x < 0.365 && y > 0.565 && y < 0.615
+  // if left of reticle is less than greatest x and
+  // right of reticle is more than least x
+  // && top of reticle is less than greatest y and
+  // bottom of reticle is greater than least y
+
+  // left: {x: 0.35170178282009723, y: 0.5759271278619548}
+  // right: {x: 0.36304700162074555, y: 0.5730623755063674}
+  // top: {x: 0.3565640194489465, y: 0.5673328707951926}
+  // bottom-left: {x: 0.34683954619124796, y: 0.6017098990622413}
+  // bottom-right: {x: 0.353322528363047, y: 0.6131689084845907}
+
+  function findRelativePosition(value, axis, relativeWindow) {
+    return axis === 'x'
+      ? (value - relativeWindow.left - window.scrollX) / relativeWindow.width
+      : (value - relativeWindow.top - window.scrollY) / relativeWindow.height;
+  }
+
+  function waldoIsHit(waldo, reticle) {
+    return (
+      reticle.left < waldo.right &&
+      reticle.right > waldo.left &&
+      reticle.top < waldo.bottom &&
+      reticle.bottom > waldo.top
+    );
+  }
+
+  function handleHit(e) {
+    const cursorPos = getCursorPos(e, imgProperties);
+    const x = cursorPos.x / imgProperties.width;
+    const y = cursorPos.y / imgProperties.height;
+    console.log(x, y);
+    const { top, right, bottom, left } =
+      reticleRef.current.getBoundingClientRect();
+    const reticleRelativePosition = {
+      top: findRelativePosition(top, 'y', imgProperties),
+      right: findRelativePosition(right, 'x', imgProperties),
+      bottom: findRelativePosition(bottom, 'y', imgProperties),
+      left: findRelativePosition(left, 'x', imgProperties),
+    };
+    const hit = waldos.find((waldo) =>
+      waldoIsHit(waldo, reticleRelativePosition)
+    );
+    console.log(hit?.name);
+  }
 
   return (
     <div ref={viewerContainerRef} className='viewer-container'>
       <div className='viewer--img-container'>
         <img
           ref={imgRef}
+          style={imgDimensions}
           className='viewer--img'
           src={imgSrc}
           alt='beautiful painting'
           onPointerMove={handleMoveLens}
+          onClick={handleHit}
         />
         <div
           ref={zoomLensRef}
@@ -216,7 +319,7 @@ export default function Viewer() {
             top: `${lensPosition.y}px`,
           }}
         >
-          <div className='reticle' />
+          <div ref={reticleRef} className='reticle' />
         </div>
       </div>
       <div
@@ -238,6 +341,12 @@ export default function Viewer() {
             : '',
           left: `${zoomWindowPosition.x}px`,
           top: `${zoomWindowPosition.y}px`,
+          border:
+            reticleZoomSize &&
+            zoomWindowRef &&
+            reticleZoomSize.x >= zoomWindowRef.current.offsetWidth
+              ? '3px solid #a6010184'
+              : '1px solid #d4d4d4',
         }}
         onPointerDown={handleMousedown}
         onPointerMove={handleMousemove}
@@ -246,6 +355,17 @@ export default function Viewer() {
         onPointerOut={handleMouseup}
         onPointerCancel={handleMouseup}
       >
+        {reticleZoomSize &&
+          reticleZoomSize.x < zoomWindowRef.current.offsetWidth && (
+            <div
+              className='zoom-window-reticle'
+              style={{
+                width: `${reticleZoomSize.x}px`,
+                height: `${reticleZoomSize.y}px`,
+                border: `${zoomRatio.x}px solid rgba(166, 1, 1, 0.518)`,
+              }}
+            />
+          )}
         <div
           ref={zoomWindowResizeRef}
           className='viewer--zoom-window-size'
