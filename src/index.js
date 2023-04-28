@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import App from './App';
+import Menu from './routes/Menu';
+import Game, {loader as gameLoader} from './routes/Game';
 import Viewer from './components/Viewer';
 import './style.css';
 
@@ -19,7 +22,7 @@ const firebaseConfig = {
 const firebase = initializeApp(firebaseConfig);
 const db = getFirestore(firebase);
 
-export async function findWaldos(painting) {
+export async function getWaldos(painting) {
   const docRef = doc(db, `paintings/${painting}`);
   const docSnap = await getDoc(docRef);
   return docSnap.data();
@@ -28,7 +31,17 @@ export async function findWaldos(painting) {
 const router = createHashRouter([
   {
     path: '/',
-    element: <Viewer />,
+    element: <App />,
+    children: [
+      {index: true,
+       element: <Menu />
+      },
+      {
+        path: ':paintingId',
+        element: <Game />,
+        loader: gameLoader,
+      }
+    ]
   },
 ]);
 
