@@ -20,15 +20,19 @@ function waldoIsHit(waldo, reticle) {
 export async function loader({ params }) {
   const { paintingId } = params;
   const waldos = await getWaldos(paintingId);
-  return {paintingId, waldos};
+  return { paintingId, waldos };
 }
 
 export default function Game() {
-  const { paintingId, waldos: {waldos} } = useLoaderData();
-  const { game, setGame, setTimer } = useOutletContext();
+  const {
+    paintingId,
+    waldos: { waldos },
+  } = useLoaderData();
+  const { game, setGame, setTimer, zoomWindowVisible } = useOutletContext();
   const [isLoading, setIsLoading] = useState(true);
   const [timerActive, setTimerActive] = useState(false);
   const [gameWon, setGameWon] = useState(false);
+  const [flags, setFlags] = useState([]);
 
   useTimer(setTimer, timerActive);
 
@@ -44,6 +48,13 @@ export default function Game() {
     if (!remainingTargets.length) handleWin();
   }
 
+  function plantFlag(hit) {
+    setFlags((prev) => {
+      if (prev.some((item) => item.name === hit.name)) return prev;
+      return [...prev, hit];
+    });
+  }
+
   function handleHit(reticlePos) {
     const hit = waldos.find((waldo) => waldoIsHit(waldo, reticlePos));
     if (!hit) return;
@@ -53,6 +64,8 @@ export default function Game() {
         target.dbName === hit.name ? { ...target, found: true } : target
       ),
     }));
+    console.log(hit);
+    plantFlag(hit);
     checkForWin(hit);
   }
 
@@ -69,6 +82,8 @@ export default function Game() {
         painting={paintingId}
         handleHit={handleHit}
         handleLoad={handleLoad}
+        flags={flags}
+        zoomWindowVisible={zoomWindowVisible}
       />
     </div>
   );

@@ -30,7 +30,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'template',
+      title: "Where's Waldo?",
       template: 'src/index.html',
       favicon: 'src/assets/favicon.ico',
     }),

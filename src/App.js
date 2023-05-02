@@ -3,6 +3,7 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import waldoLogo from './assets/waldo.svg';
+import Eye from './components/Eye';
 
 function formatTimer(start, current) {
   if (!start || !current) return '00:00:00';
@@ -23,6 +24,7 @@ function formatTimer(start, current) {
 export default function App() {
   const [game, setGame] = useState(null);
   const [timer, setTimer] = useState(null);
+  const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
 
   const navigate = useNavigate();
 
@@ -48,7 +50,13 @@ export default function App() {
           />
         </div>
         {game && (
-          <div className='game-details'>
+          <div className='game-header'>
+            <Eye
+              control={() => {
+                setZoomWindowVisible((prev) => !prev);
+              }}
+              open={zoomWindowVisible}
+            />
             <div className='timer'>{time}</div>
             <div className='waldo-tracker'>
               {game.targets.map((target) => (
@@ -69,7 +77,16 @@ export default function App() {
           </div>
         )}
       </div>
-      <Outlet context={{ game, setGame, setTimer, time, handleGameStart }} />
+      <Outlet
+        context={{
+          game,
+          setGame,
+          setTimer,
+          time,
+          handleGameStart,
+          zoomWindowVisible,
+        }}
+      />
     </div>
   );
 }

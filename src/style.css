@@ -44,8 +44,9 @@ body {
 
 .header {
   --header-height: clamp(40px, 8vw, 65px);
-  display: flex;
-  justify-content: stretch;
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  /* justify-content: stretch; */
   height: var(--header-height);
   background-color: rgba(255, 255, 255, 0.77);
   /* box-shadow: 1px 1px 8px rgb(201, 201, 201); */
@@ -61,7 +62,6 @@ body {
   visibility: hidden;
   right: 0;
   top: 100%;
-  z-index: 6;
   background-color: #dfbc7787;
   border-radius: 50%;
   pointer-events: none;
@@ -85,6 +85,7 @@ body {
   align-items: center;
   justify-content: flex-end;
   margin: 0 16px;
+  z-index: 2;
 }
 
 .header--target .target-img {
@@ -103,13 +104,14 @@ body {
 .logo-container {
   display: flex;
   align-items: center;
-  height: 100%;
-  padding: clamp(5px,var(--header-height) * 0.2, 16px);
+  height: var(--header-height);
+  padding: clamp(5px, var(--header-height) * 0.2, 16px);
   transition: 0.3s;
-  flex: 1 1 50%;
+  /* flex: 1 1 50%; */
 }
 
 .logo-container img {
+  height: 100%;
   transition: 0.3s;
   cursor: pointer;
 }
@@ -122,9 +124,6 @@ body {
   scale: 0.9;
 }
 
-.logo-container img {
-  height: 100%;
-}
 .viewer-container {
   flex-grow: 1;
   position: relative;
@@ -183,6 +182,7 @@ body {
   justify-content: center;
   overflow: hidden;
   border-radius: 5%;
+  z-index: 1;
 }
 
 .viewer--zoom-window:active {
@@ -233,6 +233,35 @@ body {
   left: 18%;
 }
 
+.flag {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+@keyframes plant-flag {
+  0% {
+    scale: 0;
+  }
+
+  80% {
+    scale: 1.5;
+  }
+
+  100% {
+    scale: 1;
+  }
+}
+
+.flag img {
+  flex: 0 0 50px;
+  animation-name: plant-flag;
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
 .root-container {
   display: flex;
   flex-direction: column;
@@ -243,18 +272,108 @@ body {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  position: relative;
+  padding: 20px 0;
+}
+
+.menu--instructions-container {
+  margin-left: 16px;
+  top: 0;
+  left: 0;
+  position: absolute;
+  border-radius: 5%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.collapsible {
+  z-index: 1;
+  transition: 0.3s;
 }
 
 .menu--instructions {
-  margin-top: 40px;
-  border: 1px solid var(--secondary);
+  /* margin-top: 20px; */
+  /* border: 1px solid var(--secondary); */
+  background-color: hsl(40, 62%, 70%);
+  border-radius: 16px;
   list-style-position: inside;
   padding: 16px;
-  align-self: center;
-  justify-self: center;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.menu--advanced-instructions {
+  margin-left: 8px;
+}
+
+.instructions-button {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  font-family: inherit;
   font-weight: 700;
   letter-spacing: 0.05em;
+  border: none;
+  background-color: transparent;
   color: var(--secondary);
+  transition: 0.3s;
+  cursor: pointer;
+  height: 2rem;
+  width: max-content;
+  padding: 0px 6px;
+}
+
+.list-icon-container {
+  height: 100%;
+  padding: 2px;
+}
+.list-icon-container img {
+  height: 100%;
+}
+
+.instructions-button img {
+  transition: 0.3s;
+}
+
+.instructions-button img {
+  rotate: 180deg;
+}
+
+.instructions-button:hover img {
+  rotate: 90deg;
+}
+
+.instructions-button:focus {
+  outline: 2px solid var(--secondary);
+  border-radius: 5px;
+}
+
+.tutorial-viewer {
+  margin-top: 16px;
+  position: relative;
+}
+
+.tutorial-viewer-img-container {
+  width: min-content;
+  margin-left: auto;
+}
+
+.tutorial-viewer-img-wrapper {
+  position: relative;
+  cursor: none;
+  height: 150px;
+}
+
+.tutorial-viewer img {
+  height: 100%;
+}
+
+.tutorial--img-details {
+  margin-top: 6px;
+  letter-spacing: 0.05em;
 }
 
 .menu--card-container {
@@ -302,10 +421,12 @@ body {
 
 .menu--card button:active {
   scale: 0.9;
-} 
+}
 
 .menu--card-details {
+  margin-top: 8px;
   font-size: 0.8rem;
+  letter-spacing: 0.05em;
 }
 
 .bold {
@@ -401,7 +522,18 @@ body {
   display: flex;
 }
 
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 .loading-screen {
+  animation-name: fade;
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -484,7 +616,21 @@ body {
   animation-delay: 0.9s;
 }
 
+@keyframes win-drop {
+  from {
+    translate: 0 -100%;
+  }
+
+  to {
+    translate: 0;
+  } 
+  
+}
 .win-screen {
+  animation-name: win-drop;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  animation-delay: 0.5s;
   position: fixed;
   z-index: 7;
   inset: 0;
@@ -519,4 +665,70 @@ body {
 
 .win-screen p {
   margin-top: 16px;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.eye-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20px;
+}
+
+.eye {
+  appearance: none;
+  border: none;
+  overflow: hidden;
+  /* position: relative; */
+  background-color: var(--secondary);
+  height: 30px;
+  width: 30px;
+  border-radius: 75% 5%;
+  rotate: 45deg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.eyelid {
+  z-index: 1;
+  border-radius: 80% 5%;
+  transition: 0.15s;
+  position: absolute;
+  transition-timing-function: linear;
+  width: 150%;
+  height: 150%;
+  background-color: var(--primary);
+}
+
+.iris-wrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 30px;
+  border-radius: 50%;
+  rotate: -45deg;
+  position: relative;
+}
+
+.iris {
+  position: absolute;
+  border-radius: 50%;
+  height: 20px;
+  width: 20px;
+  background-color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pupil {
+  border-radius: 50%;
+  background-color: var(--secondary);
+  height: 50%;
+  width: 50%;
 }
