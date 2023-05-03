@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-no-bind */
 import { useState } from 'react';
 import { useLoaderData, useOutletContext } from 'react-router-dom';
-import { getWaldos } from '..';
+import { getWaldos } from '../firebase';
 import useTimer from '../hooks/useTimer';
 import Viewer from '../components/Viewer';
 import Loading from '../components/Loading';

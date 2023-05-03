@@ -1,7 +1,10 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
+import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
 
@@ -24,9 +27,18 @@ function formatTimer(start, current) {
 export default function App() {
   const [game, setGame] = useState(null);
   const [timer, setTimer] = useState(null);
+  const [user, setUser] = useState(null);
   const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    function authStateObserver(firebaseUser) {
+      setUser(firebaseUser ?? null);
+    }
+
+    onAuthStateChanged(auth, authStateObserver);
+  }, []);
 
   function handleGameStart({ targets, id, title, artist, year }) {
     setGame({
@@ -49,6 +61,7 @@ export default function App() {
             onClick={() => navigate('/')}
           />
         </div>
+        {!game && <UserHeader user={user} />}
         {game && (
           <div className='game-header'>
             <Eye

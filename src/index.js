@@ -1,47 +1,32 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+
 import App from './App';
 import Menu from './routes/Menu';
-import Game, {loader as gameLoader} from './routes/Game';
-import Viewer from './components/Viewer';
+import Game, { loader as gameLoader } from './routes/Game';
+import SignUp, {action as signUpAction} from './routes/SignUp';
+import { action as emailLoginAction } from './components/user/LoginForm';
 import './style.css';
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyCixKLpkY5XFfHtR1pw7OAAHanyDYxnljE',
-  authDomain: 'photo-tagging-game-dbb54.firebaseapp.com',
-  projectId: 'photo-tagging-game-dbb54',
-  storageBucket: 'photo-tagging-game-dbb54.appspot.com',
-  messagingSenderId: '237365986258',
-  appId: '1:237365986258:web:4f043cc50753f9e5363e0b',
-};
-
-// Initialize Firebase
-const firebase = initializeApp(firebaseConfig);
-const db = getFirestore(firebase);
-
-export async function getWaldos(painting) {
-  const docRef = doc(db, `paintings/${painting}`);
-  const docSnap = await getDoc(docRef);
-  return docSnap.data();
-}
 
 const router = createHashRouter([
   {
     path: '/',
     element: <App />,
+    action: emailLoginAction,
     children: [
-      {index: true,
-       element: <Menu />
-      },
+      { index: true, element: <Menu /> },
       {
         path: ':paintingId',
         element: <Game />,
         loader: gameLoader,
+      },
+      {
+        path: 'sign-up',
+        element: <SignUp />,
+        action: signUpAction
       }
-    ]
+    ],
   },
 ]);
 

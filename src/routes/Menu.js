@@ -17,6 +17,8 @@ export default function Menu() {
   const imgRef = useRef(null);
   const instructionsRef = useRef(null);
   const instructionsContainerRef = useRef(null);
+  const collapsibleRef = useRef(null);
+  const instructionsButtonRef = useRef(null);
 
   const [zoomLensPosition, setZoomLensPosition] = useState({ x: 0, y: 0 });
   const [instructionsVisible, setInstructionsVisible] = useState(false);
@@ -42,7 +44,10 @@ export default function Menu() {
 
   useEffect(() => {
     function collapseTutorialOnClick(e) {
-      if (!instructionsContainerRef?.current.contains(e.target)) {
+      if (
+        !instructionsButtonRef?.current.contains(e.target) &&
+        !collapsibleRef?.current.contains(e.target)
+      ) {
         setInstructionsVisible(false);
       }
     }
@@ -57,6 +62,7 @@ export default function Menu() {
         ref={instructionsContainerRef}
       >
         <button
+          ref={instructionsButtonRef}
           className='instructions-button'
           type='button'
           onClick={() => {
@@ -75,6 +81,7 @@ export default function Menu() {
           Instructions
         </button>
         <div
+          ref={collapsibleRef}
           className='collapsible'
           style={{
             maxHeight: instructionsVisible

@@ -31,6 +31,9 @@
 :root {
   --primary: #dfbd77;
   --secondary: #903a3e;
+  --secondary-fade: hsl(357, 43%, 45%);
+  --tertiary: #e2c283;
+  --extra-light: hsl(40, 62%, 80%);
 }
 
 body {
@@ -99,6 +102,7 @@ body {
   display: flex;
   align-items: center;
   font-size: 1.5rem;
+  width: 4em;
 }
 
 .logo-container {
@@ -295,9 +299,7 @@ body {
 }
 
 .menu--instructions {
-  /* margin-top: 20px; */
-  /* border: 1px solid var(--secondary); */
-  background-color: hsl(40, 62%, 70%);
+  background-color: var(--tertiary);
   border-radius: 16px;
   list-style-position: inside;
   padding: 16px;
@@ -530,7 +532,8 @@ body {
     opacity: 1;
   }
 }
-.loading-screen {
+
+.red-fade {
   animation-name: fade;
   animation-duration: 0.2s;
   animation-fill-mode: both;
@@ -623,8 +626,7 @@ body {
 
   to {
     translate: 0;
-  } 
-  
+  }
 }
 .win-screen {
   animation-name: win-drop;
@@ -672,6 +674,270 @@ body {
   justify-content: space-between;
 }
 
+.user-header {
+  margin-left: auto;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  padding: 4px 20px;
+}
+
+.height-100 {
+  height: 100%;
+}
+
+.login-form-wrapper {
+  padding: 30px 20px 20px 20px;
+  background-color: var(--primary);
+  border-radius: 16px;
+  border: none;
+  margin: auto;
+  animation-name: fade;
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+  overflow: visible;
+}
+
+.login-form-wrapper::backdrop {
+  background-color: rgba(144, 58, 62, 0.946);
+  animation-name: fade;
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+}
+
+.login-form {
+  color: var(--secondary);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-form ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@keyframes fade-out {
+  0% {
+    scale: 0;
+    opacity: 1;
+  }
+  3% {
+    scale: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.login-form label .error {
+  pointer-events: none;
+  animation-name: fade-out;
+  animation-fill-mode: both;
+  animation-duration: 5s;
+  position: absolute;
+  font-size: 0.7rem;
+  left: 97%;
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
+  height: fit-content;
+  width: min-content;
+  color: #ff0000;
+  font-weight: 800;
+  border: 1px solid red;
+  border-radius: 8px;
+  padding: 3px;
+  background-color: var(--extra-light);
+  text-align: center;
+}
+
+.login-form label:has(.error) input {
+  outline: 1px solid red;
+}
+
+.login-form input {
+  appearance: none;
+  /* border: 1px solid var(--secondary); */
+  border: none;
+  width: 250px;
+  height: 2rem;
+  background-color: var(--extra-light);
+  border-radius: 8px;
+  transition: 0.2s;
+  text-indent: 8px;
+  color: var(--secondary);
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.login-form input:focus,
+.login-form button:focus {
+  outline: 2px solid var(--secondary);
+}
+
+.login-form button {
+  appearance: none;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-top: 8px;
+  width: 10em;
+  height: 2em;
+  max-width: 200px;
+  color: var(--secondary);
+  background-color: var(--extra-light);
+  font-size: 1.1rem;
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-form button:hover {
+  background-color: var(--secondary);
+  color: var(--extra-light);
+}
+
+.sign-up-link {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.sign-up-link a {
+  text-decoration: none;
+  color: var(--secondary);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.sign-up-link a:hover {
+  text-decoration: underline;
+}
+
+.sign-up-link a:active {
+  scale: 0.9;
+}
+
+.user-button {
+  transition: 0.3s;
+  height: 100%;
+  max-height: 45px;
+  width: max-content;
+  appearance: none;
+  border: none;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--secondary);
+  border: 1px solid rgba(255, 255, 255, 0);
+  background-color: transparent;
+  border-radius: 16px;
+
+  position: relative;
+}
+
+.user-button:hover {
+  border: 1px solid var(--secondary);
+}
+
+.user-button:active {
+  scale: 0.9;
+}
+
+.user-button:focus {
+  outline: 2px solid var(--secondary);
+}
+
+.user-button img {
+  height: max(20px, 100%);
+  border-radius: 50%;
+}
+
+@keyframes slide-down {
+  from {
+    grid-template-rows: 0fr;
+  }
+  to {
+    grid-template-rows: 1fr;
+  }
+}
+
+.user-button-container {
+  position: relative;
+}
+
+.user-hud {
+  z-index: 2;
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--secondary);
+  box-shadow: 1px 1px 10px black;
+}
+
+.user-hud-contents {
+  animation-name: slide-down;
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+  display: grid;
+  grid-template-rows: 0fr;
+}
+
+.user-hud-content-wrapper {
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.user-hud-contents button {
+  z-index: 1;
+  position: relative;
+  appearance: none;
+  border: none;
+  background-color: var(--secondary);
+  color: var(--extra-light);
+  width: 100%;
+  height: 100%;
+  padding-block: 16px;
+  font: inherit;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  transition: 0.2s;
+}
+
+.user-hud-contents button:hover {
+  background-color: var(--secondary-fade);
+}
+
+.user-hud-contents button:active {
+  background-color: var(--secondary);
+}
+
 .eye-container {
   display: flex;
   align-items: center;
@@ -683,7 +949,6 @@ body {
   appearance: none;
   border: none;
   overflow: hidden;
-  /* position: relative; */
   background-color: var(--secondary);
   height: 30px;
   width: 30px;

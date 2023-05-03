@@ -10,10 +10,6 @@ export default function Eye({ control, open }) {
   // control separate eyelid for blinking
   const [blink, setBlink] = useState(false);
 
-  // function handleClick() {
-  //   control();
-  // }
-
   function handleMouseLeave() {
     if (!open) return;
     setTimeout(() => {
