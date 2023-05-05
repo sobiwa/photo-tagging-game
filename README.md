@@ -1,5 +1,2 @@
-# template-react
-
-1/23/2023
-
-uses babel, eslint, prettier, and react
+Wood background from http://www.pixeden.com/graphic-web-backgrounds/wood-pattern-background
+-not attribution required

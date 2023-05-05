@@ -10,6 +10,7 @@ export default function MenuCard({ painting }) {
   const [contentHeight, setContentHeight] = useState();
   const frontRef = useRef(null);
   const backRef = useRef(null);
+  const gameStartButton = useRef(null);
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -38,11 +39,15 @@ export default function MenuCard({ painting }) {
 
   return (
     <div
+      // tabIndex={0}
       className='menu--card'
       onClick={() => {
         setFlip((prev) => !prev);
       }}
     >
+      {/* allow cards to be flips via tabbing */}
+      {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+      <button type='button' className='tab-flipper' />
       <div className='flip-box' style={{ height: contentHeight ?? '' }}>
         <div
           className='flip-box-inner'
@@ -81,10 +86,14 @@ export default function MenuCard({ painting }) {
               ))}
             </ul>
             <button
+              ref={gameStartButton}
+              className='start-game-button'
+              style={{ visibility: flip ? 'visible' : 'hidden' }}
               type='button'
               onClick={(e) => {
                 e.stopPropagation();
                 handleGameStart(painting);
+                gameStartButton.current.blur();
               }}
             >
               Start

@@ -2,7 +2,8 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { useState, forwardRef } from 'react';
 import { useActionData, Form, Link } from 'react-router-dom';
-import { emailLogin } from '../../firebase';
+import { emailLogin, googleLogin } from '../../firebase';
+import googleIcon from '../../assets/icons/google-btn.svg';
 
 export async function action({ request }) {
   const formData = await request.formData();
@@ -19,8 +20,18 @@ export async function action({ request }) {
 const LoginForm = forwardRef((props, ref) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [googleError, setGoogleError] = useState(null);
 
   const response = useActionData();
+
+  async function handleGoogle() {
+    try {
+      await googleLogin();
+      ref.current.close();
+    } catch (error) {
+      setGoogleError(error);
+    }
+  }
 
   if (response === 'success') {
     ref.current.close();
@@ -43,7 +54,7 @@ const LoginForm = forwardRef((props, ref) => {
   }
 
   return (
-    <dialog ref={ref} className='login-form-wrapper' onClick={closeOnClick}>
+    <dialog ref={ref} className='login-form-container' onClick={closeOnClick}>
       <Form className='login-form' method='post'>
         <ul>
           <li>
@@ -93,6 +104,12 @@ const LoginForm = forwardRef((props, ref) => {
           Create Account
         </Link>
       </div>
+      <div className='or'>OR</div>
+      <button type='button' className='google-button' onClick={handleGoogle}>
+        <img src={googleIcon} alt='google sign in' />
+        Sign in with Google
+        {googleError && <span className='error'>{googleError.message}</span>}
+      </button>
     </dialog>
   );
 });
