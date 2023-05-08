@@ -1,29 +1,34 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
-import { useEffect, useRef, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { handleSignOut } from '../../firebase';
 import defaultProfileIcon from '../../assets/icons/profile-jesus.png';
 
 export default function ProfileButton({ user }) {
   const dialogRef = useRef(null);
   const buttonRef = useRef(null);
-  // const [showDialog, setShowDialog] = useState(false);
-  
-  console.log(user);
+  const [hudIsClosing, setHudIsClosing] = useState(false);
 
   function handleClick(e) {
     e.stopPropagation();
     if (dialogRef.current.hasAttribute('open')) {
-      dialogRef.current.close();
+      setHudIsClosing(true);
     } else {
       dialogRef.current.show();
     }
-    // setShowDialog((prev) => !prev);
   }
 
   function closeOnClick(e) {
     if (!dialogRef.current.contains(e.target)) {
-      console.log('hi');
+      setHudIsClosing(true);
+    }
+  }
+
+  function handleAnimationEnd() {
+    console.log('animation-end')
+    if (hudIsClosing) {
       dialogRef.current.close();
+      setHudIsClosing(false);
     }
   }
 
@@ -42,16 +47,22 @@ export default function ProfileButton({ user }) {
         type='button'
         onClick={handleClick}
       >
-        <img src={user.photoURL ?? defaultProfileIcon} referrerPolicy='no-referrer' alt='beautiful avatar' />
+        <div className='user-button--img'>
+          <img
+            src={user.photoURL ?? defaultProfileIcon}
+            referrerPolicy='no-referrer'
+            alt='beautiful avatar'
+          />
+        </div>
         <div className='user-name'>{user.displayName ?? user.email}</div>
       </button>
-      <dialog
-        ref={dialogRef}
-        className='user-hud'
-        // style={{ display: `${showDialog ? 'block' : 'none'}` }}
-      >
-        <div className='user-hud-contents'>
+      <dialog ref={dialogRef} className='user-hud'>
+        <div
+          className={`user-hud-contents ${hudIsClosing ? 'closing' : ''}`}
+          onAnimationEnd={handleAnimationEnd}
+        >
           <div className='user-hud-content-wrapper'>
+            <button type='button'>Account</button>
             <button type='button' onClick={handleSignOut}>
               Sign out
             </button>

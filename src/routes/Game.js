@@ -5,7 +5,6 @@ import { useLoaderData, useOutletContext } from 'react-router-dom';
 import { getWaldos } from '../firebase';
 import useTimer from '../hooks/useTimer';
 import Viewer from '../components/Viewer';
-import Loading from '../components/Loading';
 import WinScreen from '../components/WinScreen';
 
 function waldoIsHit(waldo, reticle) {
@@ -28,8 +27,7 @@ export default function Game() {
     paintingId,
     waldos: { waldos },
   } = useLoaderData();
-  const { game, setGame, setTimer, zoomWindowVisible } = useOutletContext();
-  const [isLoading, setIsLoading] = useState(true);
+  const { game, setGame, setTimer, zoomWindowVisible, setIsLoading } = useOutletContext();
   const [timerActive, setTimerActive] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [flags, setFlags] = useState([]);
@@ -76,7 +74,6 @@ export default function Game() {
 
   return (
     <div className='game-container'>
-      {isLoading && <Loading />}
       {gameWon && <WinScreen />}
       <Viewer
         painting={paintingId}

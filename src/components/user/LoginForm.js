@@ -6,6 +6,7 @@ import { emailLogin, googleLogin } from '../../firebase';
 import googleIcon from '../../assets/icons/google-btn.svg';
 
 export async function action({ request }) {
+  console.log('login action');
   const formData = await request.formData();
   const email = formData.get('email');
   const password = formData.get('password');
@@ -44,10 +45,12 @@ const LoginForm = forwardRef((props, ref) => {
   function closeOnClick(e) {
     const dialogDimensions = ref.current.getBoundingClientRect();
     if (
-      e.clientX < dialogDimensions.left ||
-      e.clientX > dialogDimensions.right ||
-      e.clientY < dialogDimensions.top ||
-      e.clientY > dialogDimensions.bottom
+      e.clientX &&
+      e.clientY &&
+      (e.clientX < dialogDimensions.left ||
+        e.clientX > dialogDimensions.right ||
+        e.clientY < dialogDimensions.top ||
+        e.clientY > dialogDimensions.bottom)
     ) {
       ref.current.close();
     }
@@ -55,7 +58,7 @@ const LoginForm = forwardRef((props, ref) => {
 
   return (
     <dialog ref={ref} className='login-form-container' onClick={closeOnClick}>
-      <Form className='login-form' method='post'>
+      <Form className='login-form' method='post' action='/'>
         <ul>
           <li>
             <label htmlFor='email'>
@@ -92,7 +95,12 @@ const LoginForm = forwardRef((props, ref) => {
             </label>
           </li>
         </ul>
-        <button type='submit'>Sign in</button>
+        <div className='form--button-container'>
+          <button type='button' onClick={() => ref.current.close()}>
+            Cancel
+          </button>
+          <button type='submit'>Sign in</button>
+        </div>
       </Form>
       <div className='sign-up-link'>
         <Link

@@ -1,9 +1,8 @@
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
+import Loading from './components/Loading';
 import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
@@ -25,18 +24,21 @@ function formatTimer(start, current) {
 }
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(false);
   const [game, setGame] = useState(null);
   const [timer, setTimer] = useState(null);
   const [user, setUser] = useState(null);
   const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
-
+  
   const navigate = useNavigate();
+
+  console.log(auth);
 
   useEffect(() => {
     function authStateObserver(firebaseUser) {
       setUser(firebaseUser ?? null);
     }
-
+    
     onAuthStateChanged(auth, authStateObserver);
   }, []);
 
@@ -47,20 +49,18 @@ export default function App() {
       year,
       targets: targets.map((target) => ({ ...target, found: false })),
     });
+    setIsLoading(true);
     navigate(id);
   }
   const time = timer ? formatTimer(timer.start, timer.current) : '00:00:00';
 
   return (
     <div className='root-container'>
+      {isLoading && <Loading />}
       <div className='header'>
-        <div className='logo-container'>
-          <img
-            src={waldoLogo}
-            alt="Where's waldo?"
-            onClick={() => navigate('/')}
-          />
-        </div>
+        <Link to='/' className='logo-container'>
+          <img src={waldoLogo} alt="Where's waldo?" />
+        </Link>
         {!game && <UserHeader user={user} />}
         {game && (
           <div className='game-header'>
@@ -98,6 +98,7 @@ export default function App() {
           time,
           handleGameStart,
           zoomWindowVisible,
+          setIsLoading
         }}
       />
     </div>

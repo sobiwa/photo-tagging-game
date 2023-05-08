@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import getNewWindowPos from '../helpers/getNewWindowPos';
 
 export default function Eye({ control, open }) {
-  const eyeButtonRef = useRef(null);
   const eyeRef = useRef(null);
   const irisRef = useRef(null);
 
@@ -45,12 +44,9 @@ export default function Eye({ control, open }) {
       className='eye-container'
     >
       <button
-        ref={eyeButtonRef}
         type='button'
         className='eye'
         onClick={control}
-        // allow custom focus outline while not lingering focus post click
-        onPointerUp={() => eyeButtonRef.current.blur()}
       >
         <div
           className='eyelid'

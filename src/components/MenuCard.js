@@ -10,7 +10,6 @@ export default function MenuCard({ painting }) {
   const [contentHeight, setContentHeight] = useState();
   const frontRef = useRef(null);
   const backRef = useRef(null);
-  const gameStartButton = useRef(null);
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -86,14 +85,12 @@ export default function MenuCard({ painting }) {
               ))}
             </ul>
             <button
-              ref={gameStartButton}
               className='start-game-button'
               style={{ visibility: flip ? 'visible' : 'hidden' }}
               type='button'
               onClick={(e) => {
                 e.stopPropagation();
                 handleGameStart(painting);
-                gameStartButton.current.blur();
               }}
             >
               Start
