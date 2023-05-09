@@ -299,6 +299,8 @@ body {
 .collapsible {
   z-index: 1;
   transition: 0.3s;
+  border-radius: 16px;
+  box-shadow: 1px 1px 10px black;
 }
 
 .menu--instructions {
@@ -992,24 +994,6 @@ form button,
   width: max-content;
 }
 
-@keyframes slide-down {
-  from {
-    grid-template-rows: 0fr;
-  }
-  to {
-    grid-template-rows: 1fr;
-  }
-}
-
-@keyframes slide-up {
-  from {
-    grid-template-rows: 1fr;
-  }
-  to {
-    grid-template-rows: 0fr;
-  }
-}
-
 .user-button-container {
   position: relative;
 }
@@ -1027,17 +1011,15 @@ form button,
 }
 
 .user-hud-contents {
-  animation-name: slide-down;
-  animation-duration: 0.2s;
-  animation-fill-mode: both;
   display: grid;
   grid-template-rows: 0fr;
+  transition: 0.2s;
+  visibility: hidden;
 }
 
-.user-hud-contents.closing {
-  animation-name: slide-up;
-  animation-duration: 0.2s;
-  animation-fill-mode: both;
+.user-hud-contents.open {
+  grid-template-rows: 1fr;
+  visibility: visible;
 }
 
 .user-hud-content-wrapper {
@@ -1045,8 +1027,11 @@ form button,
   cursor: pointer;
 }
 
-.user-hud-contents button {
+.user-hud-contents .user-hud-button {
+  text-align: center;
+  display: block;
   z-index: 1;
+  text-decoration: none;
   position: relative;
   appearance: none;
   border: none;
@@ -1061,15 +1046,15 @@ form button,
   transition: 0.2s;
 }
 
-.user-hud-contents button:hover {
+.user-hud-contents .user-hud-button:hover {
   background-color: var(--secondary-fade);
 }
 
-.user-hud-contents button:active {
+.user-hud-contents .user-hud-button:active {
   background-color: var(--secondary);
 }
 
-.user-hud-contents button:focus-visible {
+.user-hud-contents .user-hud-button:focus-visible {
   outline: none;
   text-decoration: underline;
 }
