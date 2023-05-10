@@ -4,10 +4,10 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -24,6 +24,10 @@ const firebase = initializeApp(firebaseConfig);
 const db = getFirestore(firebase);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
+
+export async function getUserDetails() {
+  return auth.currentUser;
+}
 
 export async function emailSignUp(email, password) {
   const userCredential = await createUserWithEmailAndPassword(
@@ -47,6 +51,13 @@ export async function googleLogin() {
   await signInWithPopup(auth, provider);
   // const credential = GoogleAuthProvider.credentialFromResult(result);
   // const token = credential.accessToken;
+}
+
+export async function updateUserInfo(username, avatar) {
+  await updateProfile(auth.currentUser, {
+    displayName: username || null,
+    photoURL: avatar,
+  });
 }
 
 export async function getWaldos(painting) {

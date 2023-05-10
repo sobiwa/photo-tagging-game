@@ -42,7 +42,11 @@ export default function ProfileButton({ user }) {
       <div ref={dialogRef} className='user-hud'>
         <div className={`user-hud-contents ${hudIsOpen ? 'open' : ''}`}>
           <div className='user-hud-content-wrapper'>
-            <Link className='user-hud-button' to='account'>
+            <Link
+              className='user-hud-button'
+              to='account'
+              onClick={() => setHudIsOpen(false)}
+            >
               Account
             </Link>
             <button

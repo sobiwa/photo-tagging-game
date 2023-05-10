@@ -1,5 +1,5 @@
-import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import Loading from './components/Loading';
@@ -24,23 +24,28 @@ function formatTimer(start, current) {
 }
 
 export default function App() {
+  const navigation = useNavigation();
+  const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
+  const [navigationLoad, setNavigationLoad] = useState(false);
   const [game, setGame] = useState(null);
   const [timer, setTimer] = useState(null);
   const [user, setUser] = useState(null);
   const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
-  
-  const navigate = useNavigate();
-
-  console.log(auth);
 
   useEffect(() => {
     function authStateObserver(firebaseUser) {
       setUser(firebaseUser ?? null);
     }
-    
     onAuthStateChanged(auth, authStateObserver);
   }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+    setNavigationLoad(
+      navigation.state === 'loading');
+  }, [navigation.state]);
 
   function handleGameStart({ targets, id, title, artist, year }) {
     setGame({
@@ -90,17 +95,21 @@ export default function App() {
           </div>
         )}
       </div>
-      <Outlet
-        context={{
-          game,
-          setGame,
-          setTimer,
-          time,
-          handleGameStart,
-          zoomWindowVisible,
-          setIsLoading
-        }}
-      />
+      {navigationLoad && <Loading />}
+      <div className='main'>
+        <Outlet
+          context={{
+            game,
+            setGame,
+            setTimer,
+            time,
+            handleGameStart,
+            zoomWindowVisible,
+            setIsLoading,
+            user,
+          }}
+        />
+      </div>
     </div>
   );
 }

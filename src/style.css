@@ -34,6 +34,7 @@
   --secondary-fade: hsl(357, 43%, 45%);
   --tertiary: #e2c283;
   --extra-light: hsl(40, 62%, 80%);
+  --shadow: 1px 1px 10px black;
 }
 
 body {
@@ -548,6 +549,7 @@ body {
 .game-container {
   flex-grow: 1;
   display: flex;
+  align-self: stretch;
 }
 
 @keyframes fade {
@@ -714,13 +716,15 @@ body {
   align-items: center;
 }
 
-.sign-up-page {
+.main {
   flex-grow: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .sign-up-form,
+.account-form,
 .login-form-container {
   padding: 30px 20px 20px 20px;
   background-color: var(--primary);
@@ -790,7 +794,7 @@ form label .error {
   animation-duration: 5s;
   position: absolute;
   font-size: 0.7rem;
-  left: 97%;
+  left: 85%;
   top: 0;
   bottom: 0;
   margin-block: auto;
@@ -805,8 +809,57 @@ form label .error {
   text-align: center;
 }
 
+.unhandled-error {
+  text-align: center;
+  white-space: pre-line;
+  font-weight: 800;
+  color: red;
+}
+
 form label:has(.error) input {
   outline: 1px solid red;
+}
+
+.account-form {
+  position: relative;
+}
+
+.form-update-wrapper {
+  position: absolute;
+  top: 98%;
+  overflow: clip;
+  overflow-clip-margin: 10px;
+}
+
+@keyframes fall-in {
+  0% {
+    translate: 0px -150%;
+  }
+
+  5% {
+    translate: 0;
+  }
+
+  95% {
+    translate: 0;
+  }
+
+  100% {
+    translate: 0 150%;
+  } 
+}
+
+.form-update {
+  animation-name: fall-in;
+  animation-duration: 5s;
+  animation-fill-mode: both;
+  translate: 0px -150%;
+  background-color: var(--secondary);
+  color: var(--primary);
+  font-size: 1.2rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
 form input {
@@ -826,9 +879,9 @@ form input {
 }
 
 form input:focus,
-.login-form-container button:focus,
-.form--button-container button:focus,
-.form--button-container a:focus,
+.login-form-container button:focus-visible,
+.form--button-container button:focus-visible,
+.form--button-container a:focus-visible,
 .login-form-container a:focus-visible,
 .select-box-button:focus-visible {
   outline: 3px solid var(--secondary);
@@ -1044,6 +1097,11 @@ form button,
   font-weight: 800;
   letter-spacing: 0.05em;
   transition: 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-hud-contents .user-hud-button:last-child {
+  border-bottom: none;
 }
 
 .user-hud-contents .user-hud-button:hover {
@@ -1169,7 +1227,7 @@ form button,
 .select-box .select-box-button:active {
   scale: 1.05;
 }
- 
+
 .select-box-button img {
   height: 100%;
 }
@@ -1206,4 +1264,26 @@ form button,
   top: 7px;
 }
 
+img {
+  font-size: 8px;
+}
 
+.error-page {
+  text-align: center;
+  font-size: min(3rem, 55px);
+  background-color: #2a2a2a;
+  background-image: linear-gradient(
+    -45deg,
+    #2a2a2a,
+    #2a2a2a 50%,
+    hsl(0, 0%, 20%) 50%,
+    hsl(0, 0%, 20%)
+  );
+  background-size: 1px 1px;
+  border: 5px ridge var(--primary);
+  color: var(--primary);
+  margin: 30px;
+  padding: 16px;
+  max-width: 700px;
+  text-shadow: -1px -1px 0 rgba(226, 194, 131, 0.529);
+}

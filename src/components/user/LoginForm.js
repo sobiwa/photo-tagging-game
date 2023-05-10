@@ -1,17 +1,16 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { useState, forwardRef } from 'react';
-import { useActionData, Form, Link } from 'react-router-dom';
+import { useActionData, Form, Link, useNavigate } from 'react-router-dom';
 import { emailLogin, googleLogin } from '../../firebase';
 import googleIcon from '../../assets/icons/google-btn.svg';
 
 export async function action({ request }) {
-  console.log('login action');
   const formData = await request.formData();
   const email = formData.get('email');
   const password = formData.get('password');
   try {
-    const user = await emailLogin(email, password);
+    await emailLogin(email, password);
     return 'success';
   } catch (error) {
     return error.code;
@@ -23,12 +22,15 @@ const LoginForm = forwardRef((props, ref) => {
   const [password, setPassword] = useState('');
   const [googleError, setGoogleError] = useState(null);
 
+  const navigate = useNavigate();
+
   const response = useActionData();
 
   async function handleGoogle() {
     try {
       await googleLogin();
       ref.current.close();
+      navigate('/');
     } catch (error) {
       setGoogleError(error);
     }
