@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -8,7 +8,12 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
+  deleteUser,
+  reauthenticateWithPopup,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
+import paintings from './data/paintings';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCixKLpkY5XFfHtR1pw7OAAHanyDYxnljE',
@@ -25,8 +30,45 @@ const db = getFirestore(firebase);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
-export async function getUserDetails() {
-  return auth.currentUser;
+export async function updateHighScores(paintingId) {
+  const paintingRef = doc(db, `paintings/${paintingId}`);
+  let time = 600000 - 60000;
+  const array = paintings.flatMap((painting) =>
+    painting.targets.map((target) => {
+      time += 60000;
+      return {
+        ms: time,
+        uid: null,
+        username: target.description,
+        photoURL: target.img,
+      };
+    })
+  );
+
+  array.splice(15);
+  console.log(array);
+  try {
+    await updateDoc(paintingRef, {
+      highscores: array,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export async function deleteAccount() {
+  const user = auth.currentUser;
+  await deleteUser(user);
+}
+
+export async function reauthGoogle() {
+  await reauthenticateWithPopup(auth.currentUser, provider);
+}
+
+export async function reauthEmail(password) {
+  const user = auth.currentUser;
+  const credential = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, credential);
 }
 
 export async function emailSignUp(email, password) {
@@ -66,8 +108,8 @@ export async function getWaldos(painting) {
   return docSnap.data();
 }
 
-export function handleSignOut() {
-  signOut(auth);
+export async function handleSignOut() {
+  await signOut(auth);
 }
 
 export { auth };

@@ -1,26 +1,45 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import { useState, useRef } from 'react';
 import paintings from '../data/paintings';
 import defaultAvatar from '../assets/icons/profile-jesus.png';
 
-function styleBackgroundImage(src) {
-  const image = new Image();
-  image.src = src;
-  const { naturalHeight, naturalWidth } = image;
-  return {
-    backgroundImage: `url(${src})`,
-    backgroundSize: naturalHeight > naturalWidth ? 'auto 80%' : '80% auto',
-  };
-}
-
 export default function AvatarSelect({ currentAvatar, providerAvatars }) {
-  const selectBox = useRef();
+  const selectBox = useRef(null);
   const [avatarOption, setAvatarOption] = useState(
     currentAvatar ?? defaultAvatar
   );
 
+  function styleBackgroundImage(src) {
+    const image = new Image();
+    image.src = src;
+    const { naturalHeight, naturalWidth } = image;
+    return {
+      backgroundImage: `url(${src})`,
+      backgroundSize: naturalHeight > naturalWidth ? 'auto 80%' : '80% auto',
+    };
+  }
+
   function showSelectBox() {
     selectBox.current.showModal();
   }
+
+  function closeOnClick(e) {
+    const dialogDimensions = selectBox?.current.getBoundingClientRect();
+    if (
+      dialogDimensions &&
+      e.clientX &&
+      e.clientY &&
+      (e.clientX < dialogDimensions.left ||
+        e.clientX > dialogDimensions.right ||
+        e.clientY < dialogDimensions.top ||
+        e.clientY > dialogDimensions.bottom)
+    ) {
+      selectBox.current.close();
+    }
+  }
+
+  const extraAvatars = providerAvatars?.length > 0;
 
   return (
     <>
@@ -58,7 +77,7 @@ export default function AvatarSelect({ currentAvatar, providerAvatars }) {
           />
         </div>
       </label>
-      <dialog ref={selectBox} className='select-box'>
+      <dialog ref={selectBox} className='select-box' onClick={closeOnClick}>
         <div className='select-box-options-container'>
           <button
             type='button'
@@ -85,7 +104,7 @@ export default function AvatarSelect({ currentAvatar, providerAvatars }) {
               />
             ))
           )}
-          {providerAvatars?.length &&
+          {extraAvatars &&
             providerAvatars.map((avatar) => (
               <button
                 key={avatar.id}

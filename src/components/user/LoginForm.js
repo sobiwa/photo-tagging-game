@@ -1,7 +1,13 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import { useState, forwardRef } from 'react';
-import { useActionData, Form, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, forwardRef } from 'react';
+import {
+  useActionData,
+  Form,
+  Link,
+  useNavigate,
+  useNavigation,
+} from 'react-router-dom';
 import { emailLogin, googleLogin } from '../../firebase';
 import googleIcon from '../../assets/icons/google-btn.svg';
 
@@ -20,29 +26,53 @@ export async function action({ request }) {
 const LoginForm = forwardRef((props, ref) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState({});
   const [googleError, setGoogleError] = useState(null);
 
   const navigate = useNavigate();
-
+  const navigation = useNavigation();
   const response = useActionData();
+
+  // if (response === 'success') {
+  // }
+
+  function getNewError() {
+    switch (response) {
+      case 'success':
+        ref.current.close();
+        return {};
+      case 'auth/wrong-password':
+        return {
+          handled: true,
+          for: 'password',
+          message: 'incorrect password',
+        };
+      case 'auth/invalid-email':
+        return { handled: true, for: 'email', message: 'invalid email' };
+      case 'auth/user-not-found':
+        return { handled: true, for: 'email', message: 'user not found' };
+      default:
+        return { handled: false, message: response };
+    }
+  }
+
+  useEffect(() => {
+    if (navigation.state === 'submitting') {
+      setError({ handled: true, message: null });
+    } else if (navigation.state === 'idle') {
+      setError(getNewError());
+    }
+  }, [navigation.state, response]);
 
   async function handleGoogle() {
     try {
       await googleLogin();
       ref.current.close();
       navigate('/');
-    } catch (error) {
-      setGoogleError(error);
+    } catch (err) {
+      setGoogleError(err);
     }
   }
-
-  if (response === 'success') {
-    ref.current.close();
-  }
-
-  const incorrectPassword = response === 'auth/wrong-password';
-  const invalidEmail = response === 'auth/invalid-email';
-  const userNotFound = response === 'auth/user-not-found';
 
   function closeOnClick(e) {
     const dialogDimensions = ref.current.getBoundingClientRect();
@@ -59,16 +89,14 @@ const LoginForm = forwardRef((props, ref) => {
   }
 
   return (
-    <dialog ref={ref} className='login-form-container' onClick={closeOnClick}>
+    <dialog ref={ref} className='modal' onClick={closeOnClick}>
       <Form className='login-form' method='post' action='/'>
         <ul>
           <li>
             <label htmlFor='email'>
               Email
-              {(invalidEmail || userNotFound) && (
-                <span className='error'>
-                  {invalidEmail ? 'invalid email' : 'user not found'}
-                </span>
+              {error.for === 'email' && (
+                <span className='error'>{error.message}</span>
               )}
               <input
                 required
@@ -83,7 +111,7 @@ const LoginForm = forwardRef((props, ref) => {
           <li>
             <label htmlFor='password'>
               Password
-              {incorrectPassword && (
+              {error.for === 'password' && (
                 <span className='error'>incorrect password</span>
               )}
               <input

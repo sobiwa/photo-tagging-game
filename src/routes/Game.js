@@ -62,7 +62,6 @@ export default function Game() {
         target.dbName === hit.name ? { ...target, found: true } : target
       ),
     }));
-    console.log(hit);
     plantFlag(hit);
     checkForWin(hit);
   }

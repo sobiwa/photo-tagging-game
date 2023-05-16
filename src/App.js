@@ -1,11 +1,12 @@
 import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import Loading from './components/Loading';
 import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
+import { updateHighScores } from './firebase';
 
 function formatTimer(start, current) {
   if (!start || !current) return '00:00:00';
@@ -37,14 +38,14 @@ export default function App() {
   useEffect(() => {
     function authStateObserver(firebaseUser) {
       setUser(firebaseUser ?? null);
+      console.log(firebaseUser);
     }
     onAuthStateChanged(auth, authStateObserver);
   }, []);
 
   useEffect(() => {
     if (isLoading) return;
-    setNavigationLoad(
-      navigation.state === 'loading');
+    setNavigationLoad(navigation.state === 'loading');
   }, [navigation.state]);
 
   function handleGameStart({ targets, id, title, artist, year }) {
@@ -66,6 +67,9 @@ export default function App() {
         <Link to='/' className='logo-container'>
           <img src={waldoLogo} alt="Where's waldo?" />
         </Link>
+        {/* <button type='button' onClick={() => updateHighScores('angels')}>
+          update
+        </button> */}
         {!game && <UserHeader user={user} />}
         {game && (
           <div className='game-header'>

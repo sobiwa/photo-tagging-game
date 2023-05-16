@@ -124,10 +124,6 @@ body {
   scale: 0.9;
 }
 
-.logo-container:focus-visible {
-  outline: 3px solid var(--secondary);
-}
-
 .logo-container img {
   height: 100%;
 }
@@ -278,6 +274,7 @@ body {
 
 .menu-container {
   flex-grow: 1;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -725,14 +722,14 @@ body {
 
 .sign-up-form,
 .account-form,
-.login-form-container {
+.modal {
   padding: 30px 20px 20px 20px;
   background-color: var(--primary);
   border-radius: 8px;
   overflow: visible;
 }
 
-.login-form-container {
+.modal {
   border: none;
   margin: auto;
   animation-name: fade;
@@ -740,7 +737,27 @@ body {
   animation-fill-mode: both;
 }
 
-.login-form-container::backdrop {
+.modal-contents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.modal.delete-account {
+  color: var(--secondary);
+  max-width: 300px;
+}
+
+.modal-heading {
+  font-weight: 600;
+  font-size: 1.1rem;
+  /* padding: 8px; */
+  margin-bottom: 16px;
+}
+
+.modal::backdrop {
   background-color: rgba(144, 58, 62, 0.946);
   animation-name: fade;
   animation-duration: 0.2s;
@@ -748,6 +765,7 @@ body {
 }
 
 form {
+  width: min(275px, 100%);
   color: var(--secondary);
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -762,13 +780,20 @@ form ul {
   list-style: none;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
+  width: 100%;
+}
+
+form ul li {
+  width: 100%;
 }
 
 form label {
   display: flex;
   flex-direction: column;
   position: relative;
+  width: 100%;
 }
 
 @keyframes fade-out {
@@ -846,7 +871,7 @@ form label:has(.error) input {
 
   100% {
     translate: 0 150%;
-  } 
+  }
 }
 
 .form-update {
@@ -866,7 +891,7 @@ form input {
   appearance: none;
   /* border: 1px solid var(--secondary); */
   border: none;
-  width: 250px;
+  width: 100%;
   height: 2rem;
   background-color: var(--extra-light);
   border-radius: 8px;
@@ -879,11 +904,13 @@ form input {
 }
 
 form input:focus,
-.login-form-container button:focus-visible,
+.modal button:focus-visible,
 .form--button-container button:focus-visible,
 .form--button-container a:focus-visible,
-.login-form-container a:focus-visible,
-.select-box-button:focus-visible {
+.modal a:focus-visible,
+.select-box-button:focus-visible,
+.logo-container:focus-visible,
+.account-deleted a:focus-visible {
   outline: 3px solid var(--secondary);
 }
 
@@ -891,7 +918,83 @@ form input:focus,
   width: 100%;
   display: flex;
   justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 16px;
+}
+
+.account-form .form--button-container button {
+  width: min-content;
+}
+
+.account-form .form--button-container button,
+.account-form .form--button-container a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-container {
+  display: flex;
+  justify-content: center;
+}
+
+.account-form .delete-container button.delete {
+  margin-top: 30px;
+  background-color: var(--secondary);
+  color: var(--extra-light);
+  padding: 3px 8px;
+  border-radius: 100vw;
+}
+
+.account-form .delete-container button.delete:hover,
+.account-form .delete-container button.delete:focus-visible,
+.account-form .delete-container button.final-delete:hover,
+.account-form .delete-container button.final-delete:focus-visible {
+  background-color: red;
+  color: white;
+}
+
+.account-form .delete-container button.delete:focus-visible,
+.account-form .delete-container button.final-delete:focus-visible {
+  outline: 3px solid red;
+  border: 1px solid white;
+}
+
+.account-deleted {
+  background-color: var(--primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--secondary);
+  padding: 16px;
+  border-radius: 8px;
+  gap: 16px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.account-deleted a {
+  text-decoration: none;
+  color: var(--secondary);
+  font-weight: 800;
+  border-radius: 8px;
+  border: 1px solid var(--secondary);
+  padding: 8px;
+  transition: 0.2s;
+  letter-spacing: 0.05em;
+}
+
+.account-deleted a:hover {
+  background-color: var(--secondary);
+  color: var(--primary);    
+}
+
+.account-deleted a:active {
+  background-color: var(--secondary-fade);
 }
 
 .form--button-container a {
@@ -932,7 +1035,8 @@ form button,
   color: var(--secondary);
 }
 
-.google-button {
+button.google-button {
+  color: black;
   position: relative;
   appearance: none;
   border: none;
@@ -946,10 +1050,11 @@ form button,
   justify-content: center;
   gap: 8px;
   font-family: inherit;
-  font-weight: 500;
+  font-weight: 400;
+  font-size: 0.9rem;
   letter-spacing: 0.05em;
-  width: max-content;
   margin-inline: auto;
+  width: 100%;
   transition: 0.2s;
 }
 
@@ -1051,11 +1156,49 @@ form button,
   position: relative;
 }
 
+.sign-out-error {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  background-color: white;;
+  padding: 16px;
+  border-radius: 8px;
+  z-index: 3;
+}
+
+.close-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  appearance: none;
+  border: none;
+  background-color: #dfbd77;
+  padding: 2px;
+  cursor: pointer;
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+}
+
+.close-button img {
+  height: 100%;
+}
+
+.close-button:hover {
+  background-color: var(--extra-light);
+}
+
+.close-button:active {
+  background-color: var(--tertiary);
+}
+
 .user-hud {
   z-index: 2;
   position: absolute;
   top: 100%;
+  right: 0;
   width: 100%;
+  min-width: 7rem;
   border: none;
   border-radius: 8px;
   overflow: hidden;
