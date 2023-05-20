@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-no-bind */
 import { useState } from 'react';
 import { useLoaderData, useOutletContext } from 'react-router-dom';
-import { getWaldos } from '../firebase';
+import { getWaldos, timeStampGameStart } from '../firebase';
 import useTimer from '../hooks/useTimer';
 import Viewer from '../components/Viewer';
 import WinScreen from '../components/WinScreen';
@@ -27,7 +27,8 @@ export default function Game() {
     paintingId,
     waldos: { waldos },
   } = useLoaderData();
-  const { game, setGame, setTimer, zoomWindowVisible, setIsLoading } = useOutletContext();
+  const { user, game, setGame, setTimer, zoomWindowVisible, setIsLoading } =
+    useOutletContext();
   const [timerActive, setTimerActive] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [flags, setFlags] = useState([]);
@@ -68,7 +69,14 @@ export default function Game() {
 
   function handleLoad() {
     setIsLoading(false);
-    setTimerActive(true);
+    if (game) {
+      console.log('beginning game');
+      setTimerActive(true);
+      if (user) {
+        console.log('registering user game start')
+        timeStampGameStart(paintingId);
+      }
+    }
   }
 
   return (

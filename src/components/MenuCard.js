@@ -2,9 +2,8 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { useOutletContext } from 'react-router-dom';
 
-export default function MenuCard({ painting }) {
+export default function MenuCard({ painting, handleGameStart }) {
   const { thumbnail, title, artist, year, targets } = painting;
   const [flip, setFlip] = useState(false);
   const [contentHeight, setContentHeight] = useState();
@@ -27,9 +26,6 @@ export default function MenuCard({ painting }) {
     };
   });
 
-  // not sure if I can do this from this component or if it has to be from a route and I pass it in
-  const { handleGameStart } = useOutletContext();
-
   useLayoutEffect(() => {
     setContentHeight(
       flip ? backRef.current?.scrollHeight : frontRef.current?.scrollHeight
@@ -38,7 +34,6 @@ export default function MenuCard({ painting }) {
 
   return (
     <div
-      // tabIndex={0}
       className='menu--card'
       onClick={() => {
         setFlip((prev) => !prev);
@@ -84,17 +79,19 @@ export default function MenuCard({ painting }) {
                 </li>
               ))}
             </ul>
-            <button
-              className='start-game-button'
-              style={{ visibility: flip ? 'visible' : 'hidden' }}
-              type='button'
-              onClick={(e) => {
-                e.stopPropagation();
-                handleGameStart(painting);
-              }}
-            >
-              Start
-            </button>
+            {handleGameStart && (
+              <button
+                className='start-game-button'
+                style={{ visibility: flip ? 'visible' : 'hidden' }}
+                type='button'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleGameStart(painting);
+                }}
+              >
+                Start
+              </button>
+            )}
           </div>
         </div>
       </div>

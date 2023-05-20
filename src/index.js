@@ -7,8 +7,10 @@ import Menu from './routes/Menu';
 import ErrorPage from './routes/ErrorPage';
 import Game, { loader as gameLoader } from './routes/Game';
 import SignUp, { action as signUpAction } from './routes/SignUp';
-import Account, { action as accountAction, loader as accountLoader } from './routes/Account';
+import Account, { action as accountAction } from './routes/Account';
 import { action as emailLoginAction } from './components/user/LoginForm';
+import LeaderboardMenu from './routes/LeaderboardMenu';
+import Leaderboard, { loader as leaderboardLoader } from './routes/Leaderboard';
 import './style.css';
 
 const router = createHashRouter([
@@ -16,6 +18,7 @@ const router = createHashRouter([
     path: '/',
     element: <App />,
     action: emailLoginAction,
+    errorElement: <ErrorPage />,
     children: [
       {
         errorElement: <ErrorPage />,
@@ -36,6 +39,17 @@ const router = createHashRouter([
             element: <Account />,
             // loader: accountLoader,
             action: accountAction,
+          },
+          {
+            path: 'leaderboards',
+            element: <LeaderboardMenu />,
+            children: [
+              {
+                path: ':paintingId',
+                element: <Leaderboard />,
+                loader: leaderboardLoader,
+              },
+            ],
           },
         ],
       },

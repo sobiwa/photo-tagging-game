@@ -399,7 +399,7 @@ body {
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s;
   position: relative;
 }
 
@@ -515,7 +515,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.8s;
+  transition: transform 0.2s;
   transform-style: preserve-3d;
 }
 
@@ -564,7 +564,7 @@ body {
   animation-fill-mode: both;
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -812,12 +812,24 @@ form label {
   }
 }
 
+form label .error,
+.modal > .error {
+  border: 1px solid red;
+  border-radius: 8px;
+  font-weight: 800;
+  color: red;
+  text-align: center;
+  background-color: var(--extra-light);
+  position: absolute;
+
+
+}
+
 form label .error {
   pointer-events: none;
   animation-name: fade-out;
   animation-fill-mode: both;
   animation-duration: 5s;
-  position: absolute;
   font-size: 0.7rem;
   left: 85%;
   top: 0;
@@ -825,13 +837,11 @@ form label .error {
   margin-block: auto;
   height: fit-content;
   width: min-content;
-  color: #ff0000;
-  font-weight: 800;
-  border: 1px solid red;
-  border-radius: 8px;
   padding: 3px;
-  background-color: var(--extra-light);
-  text-align: center;
+}
+
+.modal > .error {
+  padding: 8px;
 }
 
 .unhandled-error {
@@ -990,7 +1000,7 @@ form input:focus,
 
 .account-deleted a:hover {
   background-color: var(--secondary);
-  color: var(--primary);    
+  color: var(--primary);
 }
 
 .account-deleted a:active {
@@ -1160,7 +1170,7 @@ button.google-button {
   position: absolute;
   right: 100%;
   top: 0;
-  background-color: white;;
+  background-color: white;
   padding: 16px;
   border-radius: 8px;
   z-index: 3;
@@ -1193,12 +1203,12 @@ button.google-button {
 }
 
 .user-hud {
-  z-index: 2;
+  z-index: 5;
   position: absolute;
   top: 100%;
   right: 0;
   width: 100%;
-  min-width: 7rem;
+  min-width: 10rem;
   border: none;
   border-radius: 8px;
   overflow: hidden;
@@ -1429,4 +1439,241 @@ img {
   padding: 16px;
   max-width: 700px;
   text-shadow: -1px -1px 0 rgba(226, 194, 131, 0.529);
+}
+
+.leaderboard-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.high-score-link-container {
+  margin-top: 30px;
+  margin-inline: auto;
+  display: flex;
+  width: clamp(300px, 80vw, 800px);
+}
+
+.high-score-link-container .high-score-link:first-child {
+  z-index: 5;
+  margin-left: 0;
+}
+
+.high-score-link-container .high-score-link:nth-child(2) {
+  z-index: 4;
+}
+
+.high-score-link-container .high-score-link:nth-child(3) {
+  z-index: 3;
+}
+
+.high-score-link-container .high-score-link:nth-child(4) {
+  z-index: 2;
+}
+
+.high-score-link-container .high-score-link:nth-child(5) {
+  z-index: 1;
+}
+
+@keyframes present {
+  0% {
+    translate: 0;
+  }
+
+  50% {
+    translate: 50% 0;
+  }
+
+  100% {
+    translate: 0;
+    transform: translateZ(200px);
+  }
+}
+
+@keyframes first-present {
+  0% {
+    translate: 0;
+  }
+  50% {
+    translate: 50% 0;
+  }
+  100% {
+    translate: 0;
+    transform: translateZ(200px);
+  }
+}
+
+@keyframes remove {
+  0% {
+    translate: 0;
+    transform: translateZ(200px);
+  }
+
+  50% {
+    translate: 50% 0;
+  }
+
+  100% {
+    translate: 0;
+  }
+}
+
+.high-score-link {
+  --depth: 10px;
+  margin-left: -100px;
+  height: 150px;
+  perspective: 1000px;
+  width: 275px;
+}
+
+.high-score-link .cube {
+  pointer-events: none;
+  transition: 0.2s;
+  transform-style: preserve-3d;
+  height: 100%;
+  transform: rotateY(-30deg);
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+.face,
+.side {
+  position: absolute;
+}
+
+.side {
+  background: url('./assets/Melamine-wood-002.png');
+  background-size: cover;
+}
+
+.high-score-link .face {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('./assets/Melamine-wood-002.png');
+  background-size: contain;
+  padding: 8px;
+}
+
+.high-score-link .right.side {
+  width: 10px;
+  height: 100%;
+  left: 100%;
+
+  transform: rotateY(90deg);
+  transform-origin: left;
+  background-color: white;
+}
+
+.high-score-link .top.side {
+  width: 100%;
+  height: var(--depth);
+  bottom: 100%;
+  transform: rotateX(90deg);
+  transform-origin: bottom;
+}
+
+.high-score-link .back.side {
+  width: 100%;
+  height: 100%;
+  transform: translateZ(calc(var(--depth) * -1));
+}
+
+/* causes too much glitchyness between cards
+/* @keyframes forward {
+  from {
+    z-index: initial;
+  }
+  to {
+    z-index: 5;
+  }
+} */
+
+.high-score-link-container .high-score-link:hover {
+  z-index: 5;
+  /* animation-name: forward;
+  animation-duration: 0.1s;
+  animation-fill-mode: both; */
+}
+
+.high-score-link:not(:first-child):hover .cube {
+  /* transition: 0.2s; */
+  animation-name: present;
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+}
+
+.high-score-link:first-child:hover .cube {
+  transform: translateZ(200px);
+}
+
+.high-score-link:not(:first-child) .cube {
+  animation-name: remove;
+  animation-duration: 0.2s;
+}
+
+.high-score-link img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.leaderboard-wrapper {
+  padding: 20px;
+  background-color: #dfbc77dc;
+  border-radius: 8px;
+  margin: 30px 0 50px 0;
+}
+
+.leaderboard {
+  color: var(--secondary);
+  font-size: min(calc(0.7rem + 0.5vw), 1rem);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-inline: auto;
+  border-collapse: collapse;
+}
+
+.leaderboard--ranking {
+  font-size: min(calc(0.7rem + 0.6vw), 1.1rem);
+  font-weight: 800;
+  width: 30px;
+  border-right: 1px solid var(--secondary);
+}
+
+.leaderboard .leaderboard--time {
+  text-align: center;
+}
+
+.leaderboard .leaderboard--user-info {
+  display: flex;
+  align-items: center;
+  padding-right: 20px;
+}
+
+.leaderboard .leaderboard--user-avatar {
+  height: 30px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leaderboard .leaderboard--user-avatar img {
+  height: 80%;
+}
+
+.leaderboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+.leaderboard-container .menu--card {
+  /* width: clamp(300px, 25vw, 500px); */
+  width: min(350px, 90vw);
+}
+
+.leaderboard-container .menu--card:hover {
+  scale: 1.01;
 }

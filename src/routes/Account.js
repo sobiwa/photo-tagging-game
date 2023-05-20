@@ -87,7 +87,7 @@ export default function Account() {
     .filter((avatar) => avatar.photoURL && avatar.id !== 'password');
 
   return (
-    <Form className='account-form' method='post'>
+    <Form className='account-form' method='post' action='/account'>
       <ul>
         <li>
           <AvatarSelect
@@ -104,7 +104,7 @@ export default function Account() {
               name='username'
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              maxLength={20}
+              maxLength={28}
             />
           </label>
         </li>
@@ -151,7 +151,7 @@ export default function Account() {
                   </div>
                 </>
               )}
-              {update && update.onDelete && (
+              {update !== null && update.onDelete && (
                 <div className='form-update-wrapper'>
                   <div className='form-update'>{update.message}</div>
                 </div>
@@ -160,7 +160,7 @@ export default function Account() {
           </dialog>
         </li>
       </ul>
-      {update && !update.onDelete && (
+      {update !== null && !update.onDelete && (
         <div className='form-update-wrapper'>
           <div className='form-update'>{update.message}</div>
         </div>

@@ -71,6 +71,13 @@ export default function ProfileButton({ user }) {
             >
               Account
             </Link>
+            <Link
+              className='user-hud-button'
+              to='leaderboards'
+              onClick={() => setHudIsOpen(false)}
+            >
+              Leaderboards
+            </Link>
             <button className='user-hud-button' type='button' onClick={signOut}>
               Sign out
             </button>

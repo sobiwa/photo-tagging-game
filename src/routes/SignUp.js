@@ -5,7 +5,6 @@ import { emailSignUp, updateUserInfo } from '../firebase';
 import AvatarSelect from '../components/AvatarSelect';
 
 export async function action({ request }) {
-  console.log('action')
   const formData = await request.formData();
   const { avatar, username, email, password, confirmPassword } =
     Object.fromEntries(formData);
@@ -72,6 +71,7 @@ export default function SignUp() {
               type='text'
               name='username'
               value={username}
+              maxLength={28}
               onChange={(e) => setUsername(e.target.value)}
             />
           </label>

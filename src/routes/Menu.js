@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import ZoomLens from '../components/ZoomLens';
 import ZoomWindow from '../components/ZoomWindow';
@@ -9,7 +9,8 @@ import tutorialImg from '../assets/paintings/thumbnails/bosch-the-haywain-tripty
 import listIcon from '../assets/icons/list.svg';
 
 export default function Menu() {
-  const { setGame, setTimer } = useOutletContext();
+  const { setGame, setTimer, handleGameStart } = useOutletContext();
+
   const tutorialViewerRef = useRef(null);
   const reticleRef = useRef(null);
   const zoomLensRef = useRef(null);
@@ -143,7 +144,11 @@ export default function Menu() {
       </div>
       <div className='menu--card-container'>
         {paintings.map((item) => (
-          <MenuCard key={item.id} painting={item} />
+          <MenuCard
+            key={item.id}
+            painting={item}
+            handleGameStart={handleGameStart}
+          />
         ))}
       </div>
     </div>

@@ -1,5 +1,12 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -37,16 +44,16 @@ export async function updateHighScores(paintingId) {
     painting.targets.map((target) => {
       time += 60000;
       return {
+        computer: true,
         ms: time,
         uid: null,
         username: target.description,
-        photoURL: target.img,
+        photoURL: null,
       };
     })
   );
 
   array.splice(15);
-  console.log(array);
   try {
     await updateDoc(paintingRef, {
       highscores: array,
@@ -54,6 +61,13 @@ export async function updateHighScores(paintingId) {
   } catch (err) {
     console.log(err);
   }
+}
+
+export async function fetchLeaderboard(paintingId) {
+  const paintingRef = doc(db, `paintings/${paintingId}`);
+  const docSnap = await getDoc(paintingRef);
+  const { highscores } = docSnap.data();
+  return highscores;
 }
 
 export async function deleteAccount() {
@@ -110,6 +124,37 @@ export async function getWaldos(painting) {
 
 export async function handleSignOut() {
   await signOut(auth);
+}
+
+export async function timeStampGameStart(paintingId) {
+  const docRef = doc(db, `users/${auth.currentUser.uid}`);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.data()?.[paintingId]) return 'data exists';
+  await setDoc(
+    docRef,
+    { [paintingId]: { start: serverTimestamp() } },
+    { merge: true }
+  );
+  return 'time logged';
+}
+
+// export async function timeStampGameStart(paintingId) {
+//   const docRef = doc(db, `users/${auth.currentUser.uid}`);
+//   const docSnap = await getDoc(docRef);
+//   if (docSnap.exists()) {
+//     if (docSnap.data()[paintingId]) return 'data exists';
+//     await updateDoc(docRef, {
+//       [`${paintingId}.start`]: serverTimestamp(),
+//     });
+//     return 'time logged';
+//   }
+//   await setDoc(docRef, { [paintingId]: { start: serverTimestamp() } });
+//   return 'time logged';
+// }
+
+export async function timeStampGameEnd(paintingId) {
+  const docRef = doc(db, `users/${auth.currentUser.uid}`);
 }
 
 export { auth };

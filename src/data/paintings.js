@@ -1,8 +1,8 @@
-import earthlyDelights from '../assets/paintings/bosch-earthly-delights.jpg'
-import lastJudgment from '../assets/paintings/bosch-the-last-judgment.jpeg'
-import childrensGames from '../assets/paintings/bruegel-childrens-games.jpg'
-import proverbs from '../assets/paintings/bruegel-netherlandish-proverbs.jpeg'
-import angels from '../assets/paintings/bruegel-the-fall-of-the-rebel-angels.jpeg'
+import earthlyDelights from '../assets/paintings/bosch-earthly-delights.jpg';
+import lastJudgment from '../assets/paintings/bosch-the-last-judgment.jpeg';
+import childrensGames from '../assets/paintings/bruegel-childrens-games.jpg';
+import proverbs from '../assets/paintings/bruegel-netherlandish-proverbs.jpeg';
+import angels from '../assets/paintings/bruegel-the-fall-of-the-rebel-angels.jpeg';
 
 import thumbEarthlyDelights from '../assets/paintings/thumbnails/bosch-earthly-delights.jpg';
 import thumbLastJudgment from '../assets/paintings/thumbnails/bosch-the-last-judgment.jpeg';
@@ -118,5 +118,14 @@ const paintings = [
     ],
   },
 ];
+
+export function findAvatar(description) {
+  const avatar = paintings
+    .find((painting) =>
+      painting.targets.some((target) => target.description === description)
+    )
+    .targets.find((item) => item.description === description).img;
+  return avatar;
+}
 
 export default paintings;

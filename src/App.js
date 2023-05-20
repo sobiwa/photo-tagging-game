@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -6,23 +7,8 @@ import Loading from './components/Loading';
 import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
+import formatTimer from './helpers/formatTimer';
 import { updateHighScores } from './firebase';
-
-function formatTimer(start, current) {
-  if (!start || !current) return '00:00:00';
-  function addZeroes(num) {
-    if (!num) return '00';
-    const newNum = Math.round(num);
-    if (newNum < 10) return `0${newNum}`;
-    return `${newNum}`;
-  }
-  const totalSeconds = (current - start) / 1000;
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${addZeroes(hours)}:${addZeroes(minutes)}:${addZeroes(seconds)}`;
-}
 
 export default function App() {
   const navigation = useNavigation();
@@ -38,14 +24,25 @@ export default function App() {
   useEffect(() => {
     function authStateObserver(firebaseUser) {
       setUser(firebaseUser ?? null);
-      console.log(firebaseUser);
     }
     onAuthStateChanged(auth, authStateObserver);
   }, []);
 
   useEffect(() => {
-    if (isLoading) return;
-    setNavigationLoad(navigation.state === 'loading');
+    if (navigation.state === 'idle' || isLoading) {
+      setNavigationLoad(false);
+      return;
+    }
+    let loadPending = true;
+    const timeoutId = setTimeout(() => {
+      loadPending = false;
+      setNavigationLoad(true);
+    }, 300);
+    return () => {
+      if (loadPending) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [navigation.state]);
 
   function handleGameStart({ targets, id, title, artist, year }) {
@@ -58,7 +55,7 @@ export default function App() {
     setIsLoading(true);
     navigate(id);
   }
-  const time = timer ? formatTimer(timer.start, timer.current) : '00:00:00';
+  const time = timer ? formatTimer(timer.current - timer.start) : '00:00:00';
 
   return (
     <div className='root-container'>
@@ -67,7 +64,7 @@ export default function App() {
         <Link to='/' className='logo-container'>
           <img src={waldoLogo} alt="Where's waldo?" />
         </Link>
-        {/* <button type='button' onClick={() => updateHighScores('angels')}>
+        {/* <button type='button' onClick={() => updateHighScores('proverbs')}>
           update
         </button> */}
         {!game && <UserHeader user={user} />}

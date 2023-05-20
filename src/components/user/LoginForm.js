@@ -23,7 +23,7 @@ export async function action({ request }) {
   }
 }
 
-const LoginForm = forwardRef((props, ref) => {
+const LoginForm = forwardRef(({close}, ref) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
@@ -38,8 +38,10 @@ const LoginForm = forwardRef((props, ref) => {
 
   function getNewError() {
     switch (response) {
+      case undefined:
+        return {};
       case 'success':
-        ref.current.close();
+        close();
         return {};
       case 'auth/wrong-password':
         return {
@@ -67,7 +69,7 @@ const LoginForm = forwardRef((props, ref) => {
   async function handleGoogle() {
     try {
       await googleLogin();
-      ref.current.close();
+      close();
       navigate('/');
     } catch (err) {
       setGoogleError(err);
@@ -84,7 +86,7 @@ const LoginForm = forwardRef((props, ref) => {
         e.clientY < dialogDimensions.top ||
         e.clientY > dialogDimensions.bottom)
     ) {
-      ref.current.close();
+      close();
     }
   }
 
@@ -136,7 +138,7 @@ const LoginForm = forwardRef((props, ref) => {
         <Link
           to='/sign-up'
           onClick={() => {
-            ref.current.close();
+            close();
           }}
         >
           Create Account
@@ -146,8 +148,9 @@ const LoginForm = forwardRef((props, ref) => {
       <button type='button' className='google-button' onClick={handleGoogle}>
         <img src={googleIcon} alt='google sign in' />
         Sign in with Google
-        {googleError && <span className='error'>{googleError.message}</span>}
       </button>
+      {!error.handled && (error.message !== undefined) && <div className='error'>{error.message}</div>}
+      {googleError && <div className='error'>{googleError.message}</div>}
     </dialog>
   );
 });
