@@ -1,11 +1,14 @@
+/* eslint-disable no-restricted-syntax */
 import { initializeApp } from 'firebase/app';
 import {
   getFirestore,
   doc,
   getDoc,
+  getDocsFromServer,
   setDoc,
   updateDoc,
   serverTimestamp,
+  collection,
 } from 'firebase/firestore';
 import {
   getAuth,
@@ -37,37 +40,39 @@ const db = getFirestore(firebase);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
-export async function updateHighScores(paintingId) {
-  const paintingRef = doc(db, `paintings/${paintingId}`);
-  let time = 600000 - 60000;
-  const array = paintings.flatMap((painting) =>
-    painting.targets.map((target) => {
-      time += 60000;
-      return {
-        computer: true,
-        ms: time,
-        uid: null,
-        username: target.description,
-        photoURL: null,
-      };
-    })
-  );
+export async function resetHighScores() {
+  const promises = [];
+  for (const painting of paintings) {
+    let time = 600000 - 60000;
+    const paintingRef = doc(db, `leaderboards/${painting.id}`);
+    const array = paintings.flatMap((item) =>
+      item.targets.map((target) => {
+        time += 60000;
+        return {
+          computer: true,
+          ms: time,
+          uid: null,
+          username: target.description,
+          photoURL: null,
+        };
+      })
+    );
 
-  array.splice(15);
+    array.splice(15);
+    promises.push(() => setDoc(paintingRef, { leaderboard: array }));
+  }
   try {
-    await updateDoc(paintingRef, {
-      highscores: array,
-    });
+    await Promise.all(promises.map((promise) => promise()));
   } catch (err) {
     console.log(err);
   }
 }
 
 export async function fetchLeaderboard(paintingId) {
-  const paintingRef = doc(db, `paintings/${paintingId}`);
+  const paintingRef = doc(db, `leaderboards/${paintingId}`);
   const docSnap = await getDoc(paintingRef);
-  const { highscores } = docSnap.data();
-  return highscores;
+  const { leaderboard } = docSnap.data();
+  return leaderboard;
 }
 
 export async function deleteAccount() {
@@ -116,6 +121,32 @@ export async function updateUserInfo(username, avatar) {
   });
 }
 
+export async function updateLeaderboardUser() {
+  const updates = [];
+  const { displayName, photoURL, uid } = auth.currentUser;
+  const leaderboardsRef = collection(db, 'leaderboards');
+  const docsSnap = await getDocsFromServer(leaderboardsRef);
+  docsSnap.forEach((item) => {
+    const data = item.data();
+    const array = data.leaderboard;
+    if (array.some((rank) => rank.uid === uid)) {
+      const newArray = array.map((rank) =>
+        rank.uid === uid ? { ...rank, username: displayName, photoURL } : rank
+      );
+      updates.push({ newArray, id: item.id });
+    }
+  });
+  if (updates.length) {
+    await Promise.all(
+      updates.map((update) =>
+        setDoc(doc(db, `leaderboards/${update.id}`), {
+          leaderboard: update.newArray,
+        })
+      )
+    );
+  }
+}
+
 export async function getWaldos(painting) {
   const docRef = doc(db, `paintings/${painting}`);
   const docSnap = await getDoc(docRef);
@@ -152,8 +183,6 @@ export async function evaluateTime(paintingId, time) {
   ]);
   const { start, end } = userData[paintingId];
   const timeInSeconds = time / 1000;
-  console.log(end - start);
-  console.log(timeInSeconds);
   if (Math.abs(end - start - timeInSeconds) > 8)
     throw new Error('Application time and server time do not match');
   if (time < leaderboard[leaderboard.length - 1].ms) {
@@ -161,10 +190,8 @@ export async function evaluateTime(paintingId, time) {
     leaderboard.pop();
     leaderboard.push({ ms: time, photoURL, uid, username: displayName });
     leaderboard.sort((a, b) => a.ms - b.ms);
-    const paintingRef = doc(db, `paintings/${paintingId}`);
-    await updateDoc(paintingRef, {
-      highscores: leaderboard,
-    });
+    const leaderboardRef = doc(db, `leaderboards/${paintingId}`);
+    await setDoc(leaderboardRef, { leaderboard });
     return 'new high score';
   }
   return null;

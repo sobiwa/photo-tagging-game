@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import { Outlet, useNavigate, Link, useNavigation, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
@@ -8,7 +8,7 @@ import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
 import formatTimer from './helpers/formatTimer';
-import { updateHighScores } from './firebase';
+import { resetHighScores } from './firebase';
 
 export default function App() {
   const navigation = useNavigation();
@@ -64,7 +64,7 @@ export default function App() {
         <Link to='/' className='logo-container'>
           <img src={waldoLogo} alt="Where's waldo?" />
         </Link>
-        {/* <button type='button' onClick={() => updateHighScores('proverbs')}>
+        {/* <button type='button' onClick={() => resetHighScores()}>
           update
         </button> */}
         {!game && <UserHeader user={user} />}

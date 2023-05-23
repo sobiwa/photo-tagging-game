@@ -8,16 +8,29 @@ import {
   useOutletContext,
   useNavigation,
 } from 'react-router-dom';
-import { updateUserInfo, deleteAccount, reauthEmail } from '../firebase';
+import { updateUserInfo, deleteAccount, reauthEmail, updateLeaderboardUser } from '../firebase';
 import AvatarSelect from '../components/AvatarSelect';
 import Reauth from '../components/Reauth';
+import badWordsFilter from '../helpers/badWords';
 
 export async function action({ request }) {
   const formData = await request.formData();
   const { intent, avatar, username, password } = Object.fromEntries(formData);
   if (intent === 'edit') {
+    if (username) {
+      try {
+        const badWord = await badWordsFilter(username);
+        if (badWord['is-bad']) {
+          return {message: 'bad language not permitted'};
+        }
+      } catch (err) {
+        // bypass error - bad words allowed if error is encountered - in case API ever fails or limit is reached ¯\_(ツ)_/¯
+        console.log(err.message);
+      }
+    }
     try {
       await updateUserInfo(username, avatar);
+      await updateLeaderboardUser();
       return { message: 'Information updated' };
     } catch (error) {
       return { message: error.code };
