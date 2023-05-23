@@ -23,7 +23,7 @@ export default function Leaderboard() {
   return (
     <div className='leaderboard-container'>
       <MenuCard painting={paintingInfo} />
-      <div className='leaderboard-wrapper'>
+      <div className='leaderboard-wrapper plaque'>
         <table className='leaderboard'>
           <thead>
             <tr>

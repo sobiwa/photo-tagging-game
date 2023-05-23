@@ -66,6 +66,13 @@ export default function ProfileButton({ user }) {
           <div className='user-hud-content-wrapper'>
             <Link
               className='user-hud-button'
+              to='/'
+              onClick={() => setHudIsOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              className='user-hud-button'
               to='account'
               onClick={() => setHudIsOpen(false)}
             >
@@ -73,7 +80,7 @@ export default function ProfileButton({ user }) {
             </Link>
             <Link
               className='user-hud-button'
-              to='leaderboards'
+              to='leaderboards/earthly-delights'
               onClick={() => setHudIsOpen(false)}
             >
               Leaderboards

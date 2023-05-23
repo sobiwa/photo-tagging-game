@@ -1,11 +1,12 @@
 /* eslint-disable consistent-return */
 /* eslint-disable react/jsx-no-bind */
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useLoaderData, useOutletContext } from 'react-router-dom';
-import { getWaldos, timeStampGameStart } from '../firebase';
+import { getWaldos, timeStampGameStart, timeStampGameEnd } from '../firebase';
 import useTimer from '../hooks/useTimer';
 import Viewer from '../components/Viewer';
 import WinScreen from '../components/WinScreen';
+import FailScreen from '../components/FailScreen';
 
 function waldoIsHit(waldo, reticle) {
   return (
@@ -18,8 +19,12 @@ function waldoIsHit(waldo, reticle) {
 
 export async function loader({ params }) {
   const { paintingId } = params;
-  const waldos = await getWaldos(paintingId);
-  return { paintingId, waldos };
+  try {
+    const waldos = await getWaldos(paintingId);
+    return { paintingId, waldos };
+  } catch (err) {
+    throw new Error(err.message);
+  }
 }
 
 export default function Game() {
@@ -27,17 +32,47 @@ export default function Game() {
     paintingId,
     waldos: { waldos },
   } = useLoaderData();
-  const { user, game, setGame, setTimer, zoomWindowVisible, setIsLoading } =
-    useOutletContext();
+  const {
+    user,
+    game,
+    setGame,
+    timer,
+    setTimer,
+    zoomWindowVisible,
+    setIsLoading,
+  } = useOutletContext();
+
+  const ranked = useRef(false);
+
   const [timerActive, setTimerActive] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [flags, setFlags] = useState([]);
+  const [error, setError] = useState(null);
+  const [newRecord, setNewRecord] = useState(false);
+  const [timeError, setTimeError] = useState(null);
 
   useTimer(setTimer, timerActive);
+
+  async function submitTime() {
+    try {
+      const recordBreak = await timeStampGameEnd(
+        paintingId,
+        timer.current - timer.start
+      );
+      if (recordBreak === 'new high score') {
+        setNewRecord(paintingId);
+      }
+    } catch (err) {
+      setTimeError(err.message);
+    }
+  }
 
   function handleWin() {
     setTimerActive(false);
     setGameWon(true);
+    if (ranked.current) {
+      submitTime();
+    }
   }
 
   function checkForWin(hit) {
@@ -67,21 +102,38 @@ export default function Game() {
     checkForWin(hit);
   }
 
+  async function startGame() {
+    if (user) {
+      try {
+        const response = await timeStampGameStart(paintingId);
+        setTimerActive(true);
+        if (response === 'time logged') {
+          ranked.current = true;
+        }
+      } catch (err) {
+        setError(err.message);
+      }
+    } else {
+      setTimerActive(true);
+    }
+  }
+
+  function resumeGame() {
+    setError(null);
+    setTimerActive(true);
+  }
+
   function handleLoad() {
     setIsLoading(false);
     if (game) {
-      console.log('beginning game');
-      setTimerActive(true);
-      if (user) {
-        console.log('registering user game start')
-        timeStampGameStart(paintingId);
-      }
+      startGame();
     }
   }
 
   return (
     <div className='game-container'>
-      {gameWon && <WinScreen />}
+      {gameWon && <WinScreen newRecord={newRecord} error={timeError} />}
+      {error !== null && <FailScreen message={error} resume={resumeGame} />}
       <Viewer
         painting={paintingId}
         handleHit={handleHit}

@@ -139,6 +139,51 @@ export async function timeStampGameStart(paintingId) {
   return 'time logged';
 }
 
+async function fetchUserData() {
+  const userRef = doc(db, `users/${auth.currentUser.uid}`);
+  const userSnap = await getDoc(userRef);
+  return userSnap.data();
+}
+
+export async function evaluateTime(paintingId, time) {
+  const [userData, leaderboard] = await Promise.all([
+    fetchUserData(),
+    fetchLeaderboard(paintingId),
+  ]);
+  const { start, end } = userData[paintingId];
+  const timeInSeconds = time / 1000;
+  console.log(end - start);
+  console.log(timeInSeconds);
+  if (Math.abs(end - start - timeInSeconds) > 8)
+    throw new Error('Application time and server time do not match');
+  if (time < leaderboard[leaderboard.length - 1].ms) {
+    const { photoURL, displayName, uid } = auth.currentUser;
+    leaderboard.pop();
+    leaderboard.push({ ms: time, photoURL, uid, username: displayName });
+    leaderboard.sort((a, b) => a.ms - b.ms);
+    const paintingRef = doc(db, `paintings/${paintingId}`);
+    await updateDoc(paintingRef, {
+      highscores: leaderboard,
+    });
+    return 'new high score';
+  }
+  return null;
+}
+
+export async function timeStampGameEnd(paintingId, time) {
+  const docRef = doc(db, `users/${auth.currentUser.uid}`);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.data()?.end) return 'data exists';
+  await setDoc(
+    docRef,
+    { [paintingId]: { end: serverTimestamp() } },
+    { merge: true }
+  );
+  const scoreEvaluation = await evaluateTime(paintingId, time);
+  return scoreEvaluation;
+}
+
 // export async function timeStampGameStart(paintingId) {
 //   const docRef = doc(db, `users/${auth.currentUser.uid}`);
 //   const docSnap = await getDoc(docRef);
@@ -152,9 +197,5 @@ export async function timeStampGameStart(paintingId) {
 //   await setDoc(docRef, { [paintingId]: { start: serverTimestamp() } });
 //   return 'time logged';
 // }
-
-export async function timeStampGameEnd(paintingId) {
-  const docRef = doc(db, `users/${auth.currentUser.uid}`);
-}
 
 export { auth };

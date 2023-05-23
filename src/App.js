@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
+import { Outlet, useNavigate, Link, useNavigation, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
@@ -37,7 +37,7 @@ export default function App() {
     const timeoutId = setTimeout(() => {
       loadPending = false;
       setNavigationLoad(true);
-    }, 300);
+    }, 500);
     return () => {
       if (loadPending) {
         clearTimeout(timeoutId);
@@ -102,8 +102,9 @@ export default function App() {
           context={{
             game,
             setGame,
-            setTimer,
             time,
+            timer,
+            setTimer,
             handleGameStart,
             zoomWindowVisible,
             setIsLoading,

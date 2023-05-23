@@ -73,7 +73,7 @@ export default function Account() {
 
   if (user === null) {
     return (
-      <div className='error-page'>
+      <div className='error-page plaque'>
         Must be logged in to view account details
       </div>
     );

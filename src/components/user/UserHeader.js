@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import LoginButton from './LoginButton';
 import ProfileButton from './ProfileButton';
 import LoginForm from './LoginForm';
 import defaultProfileIcon from '../../assets/icons/profile-jesus.png';

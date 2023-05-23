@@ -1,8 +1,15 @@
 /* eslint-disable jsx-a11y/no-autofocus */
-import { Form, Link, redirect, useActionData, useNavigation } from 'react-router-dom';
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { emailSignUp, updateUserInfo } from '../firebase';
 import AvatarSelect from '../components/AvatarSelect';
+import badWordsFilter from '../helpers/badWords';
 
 export async function action({ request }) {
   const formData = await request.formData();
@@ -10,6 +17,17 @@ export async function action({ request }) {
     Object.fromEntries(formData);
   if (password !== confirmPassword) {
     return 'passwords do not match';
+  }
+  if (username) {
+    try {
+      const badWord = await badWordsFilter(username);
+      if (badWord['is-bad']) {
+        return 'bad language not permitted';
+      }
+    } catch (err) {
+      // bypass error - bad words allowed if error is encountered - in case API ever fails or limit is reached ¯\_(ツ)_/¯
+      console.log(err.message);
+    }
   }
   try {
     await emailSignUp(email, password);
@@ -35,10 +53,16 @@ export default function SignUp() {
     let newError = { handled: true, message: null };
     switch (actionResponse) {
       case 'passwords do not match':
+        newError.for = 'password';
         newError.message = actionResponse;
         break;
       case 'auth/email-already-in-use':
+        newError.for = 'email';
         newError.message = 'email already in use';
+        break;
+      case 'bad language not permitted':
+        newError.for = 'username';
+        newError.message = actionResponse;
         break;
       case undefined:
         break;
@@ -50,11 +74,11 @@ export default function SignUp() {
 
   useEffect(() => {
     if (navigation.state === 'submitting') {
-      setError({handled: true, message: null})
+      setError({ handled: true, message: null });
     } else if (navigation.state === 'idle') {
       setError(getNewError());
     }
-  }, [navigation.state])
+  }, [navigation.state]);
 
   return (
     <Form className='sign-up-form' method='post'>
@@ -65,6 +89,9 @@ export default function SignUp() {
         <li>
           <label htmlFor='username'>
             Username
+            {error.for === 'username' && (
+              <span className='error'>{error.message}</span>
+            )}
             <input
               autoFocus
               id='username'
@@ -79,7 +106,7 @@ export default function SignUp() {
         <li>
           <label htmlFor='sign-up-email'>
             Email
-            {error.message === 'email already in use' && (
+            {error.for === 'email' && (
               <span className='error'>{error.message}</span>
             )}
             <input
@@ -109,7 +136,7 @@ export default function SignUp() {
         <li>
           <label htmlFor='confirm-password'>
             Confirm Password
-            {error.message === 'passwords do not match' && (
+            {error.for === 'password' && (
               <span className='error'>{error.message}</span>
             )}
             <input

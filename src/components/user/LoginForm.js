@@ -33,9 +33,6 @@ const LoginForm = forwardRef(({close}, ref) => {
   const navigation = useNavigation();
   const response = useActionData();
 
-  // if (response === 'success') {
-  // }
-
   function getNewError() {
     switch (response) {
       case undefined:

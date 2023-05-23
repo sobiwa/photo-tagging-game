@@ -1,7 +1,13 @@
-import { Link, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, Outlet, useOutletContext } from 'react-router-dom';
 import paintings from '../data/paintings';
 
 export default function LeaderboardMenu() {
+  const { setGame, setTimer } = useOutletContext();
+  useEffect(() => {
+    setGame(null);
+    setTimer(null);
+  }, []);
   return (
     <div className='leaderboard-menu'>
       <div className='high-score-link-container'>
