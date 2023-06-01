@@ -64,9 +64,9 @@ export default function App() {
         <Link to='/' className='logo-container'>
           <img src={waldoLogo} alt="Where's waldo?" />
         </Link>
-        {/* <button type='button' onClick={() => resetHighScores()}>
+        <button className='dev' type='button' onClick={() => resetHighScores()}>
           update
-        </button> */}
+        </button>
         {!game && <UserHeader user={user} />}
         {game && (
           <div className='game-header'>

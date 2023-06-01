@@ -63,6 +63,7 @@ export default function Game() {
         setNewRecord(paintingId);
       }
     } catch (err) {
+      console.log(err);
       setTimeError(err.message);
     }
   }

@@ -6,7 +6,6 @@ import {
   getDoc,
   getDocsFromServer,
   setDoc,
-  updateDoc,
   serverTimestamp,
   collection,
 } from 'firebase/firestore';
@@ -43,11 +42,11 @@ const provider = new GoogleAuthProvider();
 export async function resetHighScores() {
   const promises = [];
   for (const painting of paintings) {
-    let time = 600000 - 60000;
+    let time = 6000 - 600;
     const paintingRef = doc(db, `leaderboards/${painting.id}`);
     const array = paintings.flatMap((item) =>
       item.targets.map((target) => {
-        time += 60000;
+        time += 600;
         return {
           computer: true,
           ms: time,
@@ -66,6 +65,10 @@ export async function resetHighScores() {
   } catch (err) {
     console.log(err);
   }
+}
+
+export function getUid() {
+  return auth.currentUser?.uid;
 }
 
 export async function fetchLeaderboard(paintingId) {
@@ -157,38 +160,40 @@ export async function handleSignOut() {
   await signOut(auth);
 }
 
+async function fetchUserData(paintingId) {
+  const userRef = doc(
+    db,
+    `users/${auth.currentUser.uid}/paintings/${paintingId}`
+  );
+  const userSnap = await getDoc(userRef);
+  return userSnap.exists() ? userSnap.data() : null;
+}
+
 export async function timeStampGameStart(paintingId) {
-  const docRef = doc(db, `users/${auth.currentUser.uid}`);
+  const docRef = doc(
+    db,
+    `users/${auth.currentUser.uid}/paintings/${paintingId}`
+  );
   const docSnap = await getDoc(docRef);
 
-  if (docSnap.data()?.[paintingId]) return 'data exists';
-  await setDoc(
-    docRef,
-    { [paintingId]: { start: serverTimestamp() } },
-    { merge: true }
-  );
+  if (docSnap.exists()) return 'data exists';
+  await setDoc(docRef, { start: serverTimestamp() }, { merge: true });
   return 'time logged';
 }
 
-async function fetchUserData() {
-  const userRef = doc(db, `users/${auth.currentUser.uid}`);
-  const userSnap = await getDoc(userRef);
-  return userSnap.data();
-}
-
-export async function evaluateTime(paintingId, time) {
+async function evaluateTime(paintingId) {
   const [userData, leaderboard] = await Promise.all([
-    fetchUserData(),
+    fetchUserData(paintingId),
     fetchLeaderboard(paintingId),
   ]);
-  const { start, end } = userData[paintingId];
-  const timeInSeconds = time / 1000;
+  const { start, end, frontTime } = userData;
+  const timeInSeconds = frontTime / 1000;
   if (Math.abs(end - start - timeInSeconds) > 8)
     throw new Error('Application time and server time do not match');
-  if (time < leaderboard[leaderboard.length - 1].ms) {
+  if (frontTime < leaderboard[leaderboard.length - 1].ms) {
     const { photoURL, displayName, uid } = auth.currentUser;
     leaderboard.pop();
-    leaderboard.push({ ms: time, photoURL, uid, username: displayName });
+    leaderboard.push({ ms: frontTime, photoURL, uid, username: displayName });
     leaderboard.sort((a, b) => a.ms - b.ms);
     const leaderboardRef = doc(db, `leaderboards/${paintingId}`);
     await setDoc(leaderboardRef, { leaderboard });
@@ -198,17 +203,21 @@ export async function evaluateTime(paintingId, time) {
 }
 
 export async function timeStampGameEnd(paintingId, time) {
-  const docRef = doc(db, `users/${auth.currentUser.uid}`);
+  const docRef = doc(db, `users/${auth.currentUser.uid}/paintings/${paintingId}`);
   const docSnap = await getDoc(docRef);
-
   if (docSnap.data()?.end) return 'data exists';
   await setDoc(
     docRef,
-    { [paintingId]: { end: serverTimestamp() } },
+    { end: serverTimestamp(), frontTime: time },
     { merge: true }
   );
-  const scoreEvaluation = await evaluateTime(paintingId, time);
+  const scoreEvaluation = await evaluateTime(paintingId);
   return scoreEvaluation;
+}
+
+export async function getUserTime(paintingId) {
+  const userData = await fetchUserData(paintingId);
+  return userData?.frontTime;
 }
 
 // export async function timeStampGameStart(paintingId) {

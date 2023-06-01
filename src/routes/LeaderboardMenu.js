@@ -3,7 +3,7 @@ import { Link, Outlet, useOutletContext } from 'react-router-dom';
 import paintings from '../data/paintings';
 
 export default function LeaderboardMenu() {
-  const { setGame, setTimer } = useOutletContext();
+  const { setGame, setTimer, user } = useOutletContext();
   useEffect(() => {
     setGame(null);
     setTimer(null);
@@ -24,7 +24,7 @@ export default function LeaderboardMenu() {
           </Link>
         ))}
       </div>
-      <Outlet />
+      <Outlet context={{user}} />
     </div>
   );
 }

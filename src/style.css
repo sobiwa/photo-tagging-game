@@ -1644,8 +1644,19 @@ img {
   border-right: 1px solid var(--primary);
 }
 
+.leaderboard--current-user td {
+  background-color: #e2c2831f;
+}
+.leaderboard--current-user td:first-child {
+  border-radius: 8px 0 0 8px;
+}
+.leaderboard--current-user td:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
 .leaderboard .leaderboard--time {
   text-align: center;
+  padding-inline-end: 5px;
 }
 
 .leaderboard .leaderboard--user-info {
@@ -1705,4 +1716,10 @@ img {
   width: 300px;
   padding: 16px;
   margin-bottom: 16px;
+}
+
+.dev {
+  position: absolute;
+  margin-inline: auto;
+  width: 100px;
 }
