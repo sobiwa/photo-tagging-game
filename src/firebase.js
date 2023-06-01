@@ -6,11 +6,15 @@ import {
   getDoc,
   getDocsFromServer,
   setDoc,
+  getDocs,
   serverTimestamp,
   collection,
+  query,
+  where,
 } from 'firebase/firestore';
 import {
   getAuth,
+  signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
@@ -21,6 +25,7 @@ import {
   reauthenticateWithPopup,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  linkWithCredential,
 } from 'firebase/auth';
 import paintings from './data/paintings';
 
@@ -93,13 +98,12 @@ export async function reauthEmail(password) {
   await reauthenticateWithCredential(user, credential);
 }
 
-export async function emailSignUp(email, password) {
-  const userCredential = await createUserWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
-  return userCredential;
+export async function anonLogin() {
+  try {
+    await signInAnonymously(auth);
+  } catch (err) {
+    console.log(err.message);
+  }
 }
 
 export async function emailLogin(email, password) {
@@ -181,37 +185,87 @@ export async function timeStampGameStart(paintingId) {
   return 'time logged';
 }
 
-async function evaluateTime(paintingId) {
-  const [userData, leaderboard] = await Promise.all([
-    fetchUserData(paintingId),
-    fetchLeaderboard(paintingId),
-  ]);
+async function evaluateTime(paintingId, userData, leaderboard) {
+  // const [userData, leaderboard] = await Promise.all([
+  //   fetchUserData(paintingId),
+  //   fetchLeaderboard(paintingId),
+  // ]);
   const { start, end, frontTime } = userData;
   const timeInSeconds = frontTime / 1000;
   if (Math.abs(end - start - timeInSeconds) > 8)
     throw new Error('Application time and server time do not match');
   if (frontTime < leaderboard[leaderboard.length - 1].ms) {
-    const { photoURL, displayName, uid } = auth.currentUser;
-    leaderboard.pop();
-    leaderboard.push({ ms: frontTime, photoURL, uid, username: displayName });
-    leaderboard.sort((a, b) => a.ms - b.ms);
-    const leaderboardRef = doc(db, `leaderboards/${paintingId}`);
-    await setDoc(leaderboardRef, { leaderboard });
-    return 'new high score';
+    const { photoURL, displayName, uid, isAnonymous } = auth.currentUser;
+    if (!isAnonymous) {
+      leaderboard.pop();
+      leaderboard.push({ ms: frontTime, photoURL, uid, username: displayName });
+      leaderboard.sort((a, b) => a.ms - b.ms);
+      const leaderboardRef = doc(db, `leaderboards/${paintingId}`);
+      await setDoc(leaderboardRef, { leaderboard });
+    }
+    return { highScore: true, isAnonymous };
   }
-  return null;
+  return { highScore: false };
+}
+
+async function postAnonScores() {
+  const collectionRef = collection(
+    db,
+    `users/${auth.currentUser.uid}/paintings`
+  );
+  const q = query(collectionRef, where('frontTime', '!=', null));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return;
+  const array = querySnapshot.docs;
+  const leaderboardData = await Promise.all(
+    array.map((item) => fetchLeaderboard(item.id))
+  );
+  await Promise.all(
+    array.map((document, index) => {
+      const userData = document.data();
+      const leaderboard = leaderboardData[index];
+      return evaluateTime(document.id, userData, leaderboard);
+    })
+  );
+}
+
+export async function emailSignUp(email, password) {
+  if (auth.currentUser && auth.currentUser.isAnonymous) {
+    const credential = EmailAuthProvider.credential(email, password);
+    try {
+      await linkWithCredential(auth.currentUser, credential);
+      await postAnonScores();
+      return 'Anonymous account successfully upgraded';
+    } catch (err) {
+      throw new Error('Error upgrading anonymous account');
+    }
+  } else {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    return userCredential;
+  }
 }
 
 export async function timeStampGameEnd(paintingId, time) {
-  const docRef = doc(db, `users/${auth.currentUser.uid}/paintings/${paintingId}`);
+  const docRef = doc(
+    db,
+    `users/${auth.currentUser.uid}/paintings/${paintingId}`
+  );
   const docSnap = await getDoc(docRef);
-  if (docSnap.data()?.end) return 'data exists';
+  if (docSnap.data()?.end) return { highScore: false };
   await setDoc(
     docRef,
     { end: serverTimestamp(), frontTime: time },
     { merge: true }
   );
-  const scoreEvaluation = await evaluateTime(paintingId);
+  const [userData, leaderboard] = await Promise.all([
+    fetchUserData(paintingId),
+    fetchLeaderboard(paintingId),
+  ]);
+  const scoreEvaluation = await evaluateTime(paintingId, userData, leaderboard);
   return scoreEvaluation;
 }
 

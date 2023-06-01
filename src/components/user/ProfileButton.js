@@ -22,6 +22,10 @@ export default function ProfileButton({ user }) {
     }
   }
 
+  function closeHud() {
+    setHudIsOpen(false);
+  }
+
   async function signOut() {
     try {
       await handleSignOut();
@@ -59,7 +63,11 @@ export default function ProfileButton({ user }) {
             alt='beautiful avatar'
           />
         </div>
-        <div className='user-name'>{user.displayName ?? user.email}</div>
+        <div className='user-name'>
+          {user.isAnonymous && !user.displayName
+            ? 'anon'
+            : user.displayName ?? user.email}
+        </div>
       </button>
       <div ref={dialogRef} className='user-hud'>
         <div className={`user-hud-contents ${hudIsOpen ? 'open' : ''}`}>
@@ -71,23 +79,38 @@ export default function ProfileButton({ user }) {
             >
               Home
             </Link>
+            {user.isAnonymous && (
+              <Link
+                className='user-hud-button'
+                to='account/sign-in'
+                onClick={() => closeHud()}
+              >
+                Sign in
+              </Link>
+            )}
             <Link
               className='user-hud-button'
               to='account'
-              onClick={() => setHudIsOpen(false)}
+              onClick={() => closeHud()}
             >
               Account
             </Link>
             <Link
               className='user-hud-button'
               to='leaderboards/earthly-delights'
-              onClick={() => setHudIsOpen(false)}
+              onClick={() => closeHud()}
             >
               Leaderboards
             </Link>
-            <button className='user-hud-button' type='button' onClick={signOut}>
-              Sign out
-            </button>
+            {!user.isAnonymous && (
+              <button
+                className='user-hud-button'
+                type='button'
+                onClick={signOut}
+              >
+                Sign out
+              </button>
+            )}
           </div>
         </div>
       </div>

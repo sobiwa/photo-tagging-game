@@ -128,4 +128,8 @@ export function findAvatar(description) {
   return avatar;
 }
 
+export function getPaintingInfo(paintingId) {
+  return paintings.find((item) => item.id === paintingId);
+}
+
 export default paintings;

@@ -48,19 +48,19 @@ export default function Game() {
   const [gameWon, setGameWon] = useState(false);
   const [flags, setFlags] = useState([]);
   const [error, setError] = useState(null);
-  const [newRecord, setNewRecord] = useState(false);
+  const [newRecord, setNewRecord] = useState({ highScore: false });
   const [timeError, setTimeError] = useState(null);
 
   useTimer(setTimer, timerActive);
 
   async function submitTime() {
     try {
-      const recordBreak = await timeStampGameEnd(
+      const results = await timeStampGameEnd(
         paintingId,
         timer.current - timer.start
       );
-      if (recordBreak === 'new high score') {
-        setNewRecord(paintingId);
+      if (results.highScore) {
+        setNewRecord({ paintingId, ...results });
       }
     } catch (err) {
       console.log(err);
@@ -74,6 +74,7 @@ export default function Game() {
     if (ranked.current) {
       submitTime();
     }
+    setGame(null);
   }
 
   function checkForWin(hit) {

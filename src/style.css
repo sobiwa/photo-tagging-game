@@ -1718,6 +1718,27 @@ img {
   margin-bottom: 16px;
 }
 
+.login-warning {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.login-warning a {
+  font-size: 1rem;
+  color: var(--secondary);
+}
+
+.login-warning a:hover {
+  text-decoration: none;
+}
+
+.login-warning a:active {
+  scale: 0.95;
+}
+
 .dev {
   position: absolute;
   margin-inline: auto;

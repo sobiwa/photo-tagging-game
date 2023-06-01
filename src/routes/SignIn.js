@@ -1,15 +1,20 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import { useState, useEffect, forwardRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 import {
   useActionData,
   Form,
   Link,
   useNavigate,
   useNavigation,
+  redirect,
 } from 'react-router-dom';
-import { emailLogin, googleLogin } from '../../firebase';
-import googleIcon from '../../assets/icons/google-btn.svg';
+import { emailLogin, googleLogin } from '../firebase';
+import googleIcon from '../assets/icons/google-btn.svg';
 
 export async function action({ request }) {
   const formData = await request.formData();
@@ -17,13 +22,15 @@ export async function action({ request }) {
   const password = formData.get('password');
   try {
     await emailLogin(email, password);
-    return 'success';
+    return redirect('/');
   } catch (error) {
     return error.code;
   }
 }
 
-const LoginForm = forwardRef(({ close }, ref) => {
+// const LoginForm = forwardRef(({ close }, ref) => {
+export default function SignIn() {
+  const ref = useRef(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
@@ -37,9 +44,9 @@ const LoginForm = forwardRef(({ close }, ref) => {
     switch (response) {
       case undefined:
         return {};
-      case 'success':
-        close();
-        return {};
+      // case 'success':
+      //   navigate(-1);
+      //   return {};
       case 'auth/wrong-password':
         return {
           handled: true,
@@ -63,10 +70,15 @@ const LoginForm = forwardRef(({ close }, ref) => {
     }
   }, [navigation.state, response]);
 
+  // just assigning open attribute will not allow it to be a modal
+  useEffect(() => {
+    if (ref.current.hasAttribute('open')) return;
+    ref.current.showModal();
+  }, []);
+
   async function handleGoogle() {
     try {
       await googleLogin();
-      close();
       navigate('/');
     } catch (err) {
       setGoogleError(err);
@@ -83,63 +95,58 @@ const LoginForm = forwardRef(({ close }, ref) => {
         e.clientY < dialogDimensions.top ||
         e.clientY > dialogDimensions.bottom)
     ) {
-      close();
+      navigate('/account');
     }
   }
 
   return (
     <dialog ref={ref} className='modal' onClick={closeOnClick}>
-      <ul>
-        <li>
-          <label htmlFor='email'>
-            Email
-            {error.for === 'email' && (
-              <span className='error'>{error.message}</span>
-            )}
-            <input
-              required
-              type='email'
-              id='email'
-              name='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-        </li>
-        <li>
-          <label htmlFor='password'>
-            Password
-            {error.for === 'password' && (
-              <span className='error'>incorrect password</span>
-            )}
-            <input
-              required
-              type='password'
-              id='password'
-              name='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-        </li>
-      </ul>
-      <div className='form--button-container'>
-        <button type='button' onClick={() => close()}>
-          Cancel
-        </button>
-        <button type='submit' name='intent' value='login'>
-          Sign in
-        </button>
-      </div>
+      <Form method='post' action='/account/sign-in'>
+        <ul>
+          <li>
+            <label htmlFor='email'>
+              Email
+              {error.for === 'email' && (
+                <span className='error'>{error.message}</span>
+              )}
+              <input
+                required
+                type='email'
+                id='email'
+                name='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+          </li>
+          <li>
+            <label htmlFor='password'>
+              Password
+              {error.for === 'password' && (
+                <span className='error'>incorrect password</span>
+              )}
+              <input
+                required
+                type='password'
+                id='password'
+                name='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+          </li>
+        </ul>
+        <div className='form--button-container'>
+          <button type='button' onClick={() => navigate('/account')}>
+            Cancel
+          </button>
+          <button type='submit' name='intent' value='login'>
+            Sign in
+          </button>
+        </div>
+      </Form>
       <div className='sign-up-link'>
-        <Link
-          to='/sign-up'
-          onClick={() => {
-            close();
-          }}
-        >
-          Create Account
-        </Link>
+        <Link to='/sign-up'>Create Account</Link>
       </div>
       <div className='or'>OR</div>
       <button type='button' className='google-button' onClick={handleGoogle}>
@@ -152,6 +159,4 @@ const LoginForm = forwardRef(({ close }, ref) => {
       {googleError && <div className='error'>{googleError.message}</div>}
     </dialog>
   );
-});
-
-export default LoginForm;
+}

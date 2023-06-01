@@ -2,13 +2,12 @@
 import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, anonLogin, resetHighScores } from './firebase';
 import Loading from './components/Loading';
 import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
 import formatTimer from './helpers/formatTimer';
-import { resetHighScores } from './firebase';
 
 export default function App() {
   const navigation = useNavigation();
@@ -23,7 +22,11 @@ export default function App() {
 
   useEffect(() => {
     function authStateObserver(firebaseUser) {
+      console.log(firebaseUser);
       setUser(firebaseUser ?? null);
+      if (firebaseUser === null) {
+        anonLogin();
+      }
     }
     onAuthStateChanged(auth, authStateObserver);
   }, []);

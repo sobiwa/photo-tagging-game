@@ -5,6 +5,7 @@ import {
   redirect,
   useActionData,
   useNavigation,
+  useOutletContext,
 } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { emailSignUp, updateUserInfo } from '../firebase';
@@ -39,7 +40,9 @@ export async function action({ request }) {
 }
 
 export default function SignUp() {
-  const [username, setUsername] = useState('');
+  const { user } = useOutletContext();
+
+  const [username, setUsername] = useState(user?.displayName ?? '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -84,7 +87,7 @@ export default function SignUp() {
     <Form className='sign-up-form' method='post'>
       <ul>
         <li>
-          <AvatarSelect />
+          <AvatarSelect currentAvatar={user?.photoURL ?? null} />
         </li>
         <li>
           <label htmlFor='username'>
@@ -94,6 +97,7 @@ export default function SignUp() {
             )}
             <input
               autoFocus
+              required
               id='username'
               type='text'
               name='username'
