@@ -1015,6 +1015,7 @@ form input:focus,
 
 form button,
 .fail-screen-container button,
+.form--button-container button,
 .form--button-container a {
   padding: 8px 16px;
   appearance: none;
@@ -1078,6 +1079,17 @@ button.google-button {
 .google-button:active {
   translate: 0;
   box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.359);
+}
+
+.google-window {
+  background-color: var(--primary);
+  color: var(--secondary);
+  font-weight: 600;
+  text-align: center;
+  width: min(300px, 100%);
+  border-radius: 8px;
+  box-shadow: var(--depth);
+  padding: 30px;
 }
 
 .sign-up-link {

@@ -26,6 +26,8 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   linkWithCredential,
+  linkWithPopup,
+  getAdditionalUserInfo,
 } from 'firebase/auth';
 import paintings from './data/paintings';
 
@@ -38,7 +40,6 @@ const firebaseConfig = {
   appId: '1:237365986258:web:4f043cc50753f9e5363e0b',
 };
 
-// Initialize Firebase
 const firebase = initializeApp(firebaseConfig);
 const db = getFirestore(firebase);
 const auth = getAuth();
@@ -102,6 +103,7 @@ export async function anonLogin() {
   try {
     await signInAnonymously(auth);
   } catch (err) {
+    // app works if this doesn't
     console.log(err.message);
   }
 }
@@ -115,10 +117,15 @@ export async function emailLogin(email, password) {
   return userCredential;
 }
 
-export async function googleLogin() {
-  await signInWithPopup(auth, provider);
-  // const credential = GoogleAuthProvider.credentialFromResult(result);
-  // const token = credential.accessToken;
+async function getUserScores() {
+  const collectionRef = collection(
+    db,
+    `users/${auth.currentUser.uid}/paintings`
+  );
+  const q = query(collectionRef, where('frontTime', '!=', null));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return null;
+  return querySnapshot.docs;
 }
 
 export async function updateUserInfo(username, avatar) {
@@ -186,10 +193,6 @@ export async function timeStampGameStart(paintingId) {
 }
 
 async function evaluateTime(paintingId, userData, leaderboard) {
-  // const [userData, leaderboard] = await Promise.all([
-  //   fetchUserData(paintingId),
-  //   fetchLeaderboard(paintingId),
-  // ]);
   const { start, end, frontTime } = userData;
   const timeInSeconds = frontTime / 1000;
   if (Math.abs(end - start - timeInSeconds) > 8)
@@ -208,20 +211,12 @@ async function evaluateTime(paintingId, userData, leaderboard) {
   return { highScore: false };
 }
 
-async function postAnonScores() {
-  const collectionRef = collection(
-    db,
-    `users/${auth.currentUser.uid}/paintings`
-  );
-  const q = query(collectionRef, where('frontTime', '!=', null));
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) return;
-  const array = querySnapshot.docs;
+async function postAnonScores(userScores) {
   const leaderboardData = await Promise.all(
-    array.map((item) => fetchLeaderboard(item.id))
+    userScores.map((item) => fetchLeaderboard(item.id))
   );
   await Promise.all(
-    array.map((document, index) => {
+    userScores.map((document, index) => {
       const userData = document.data();
       const leaderboard = leaderboardData[index];
       return evaluateTime(document.id, userData, leaderboard);
@@ -233,8 +228,14 @@ export async function emailSignUp(email, password) {
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     const credential = EmailAuthProvider.credential(email, password);
     try {
+
+      // unlike google, sign in and sign up are separate,
+      // therefore goes straight into linking
       await linkWithCredential(auth.currentUser, credential);
-      await postAnonScores();
+      const userScores = await getUserScores();
+      if (userScores) {
+        await postAnonScores(userScores);
+      }
       return 'Anonymous account successfully upgraded';
     } catch (err) {
       throw new Error('Error upgrading anonymous account');
@@ -247,6 +248,37 @@ export async function emailSignUp(email, password) {
     );
     return userCredential;
   }
+}
+
+export async function googleLogin() {
+  if (auth.currentUser && auth.currentUser.isAnonymous) {
+    const userScores = await getUserScores();
+
+    // attempts link only if there is anything worth linking
+    // avoids additional UI if account already exists
+    if (userScores) {
+      try {
+        await linkWithPopup(auth.currentUser, provider);
+        await postAnonScores(userScores);
+        return 'Anonymous account successfully upgraded';
+      } catch (err) {
+        throw new Error(err.code);
+      }
+    }
+  }
+  try {
+    await signInWithPopup(auth, provider);
+    return 'Account successfully created';
+  } catch (err) {
+    throw new Error(err.message);
+  }
+}
+
+// for when user has scores under anon and also a google account
+// already with the app. User interaction required to prompt another
+// google popup after attempt at linking (see above function)
+export async function googleBypass() {
+  await signInWithPopup(auth, provider);
 }
 
 export async function timeStampGameEnd(paintingId, time) {

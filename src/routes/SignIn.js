@@ -1,10 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import {
-  useState,
-  useEffect,
-  useRef,
-} from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   useActionData,
   Form,
@@ -13,7 +9,7 @@ import {
   useNavigation,
   redirect,
 } from 'react-router-dom';
-import { emailLogin, googleLogin } from '../firebase';
+import { emailLogin, googleLogin, googleBypass } from '../firebase';
 import googleIcon from '../assets/icons/google-btn.svg';
 
 export async function action({ request }) {
@@ -35,6 +31,8 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState({});
   const [googleError, setGoogleError] = useState(null);
+  const [googleWindow, setGoogleWindow] = useState(false);
+  const [googleWindowError, setGoogleWindowError] = useState(null);
 
   const navigate = useNavigate();
   const navigation = useNavigation();
@@ -81,7 +79,19 @@ export default function SignIn() {
       await googleLogin();
       navigate('/');
     } catch (err) {
-      setGoogleError(err);
+      if (err.message === 'auth/credential-already-in-use') {
+        setGoogleWindow(true);
+      }
+      setGoogleError(err.message);
+    }
+  }
+
+  async function handleGoogleBypass() {
+    try {
+      await googleBypass();
+      navigate('/');
+    } catch (err) {
+      setGoogleWindowError(err.message);
     }
   }
 
@@ -156,7 +166,25 @@ export default function SignIn() {
       {!error.handled && error.message !== undefined && (
         <div className='error'>{error.message}</div>
       )}
-      {googleError && <div className='error'>{googleError.message}</div>}
+      {googleError !== null && <div className='error'>{googleError}</div>}
+      {googleWindow && (
+        <div className='red-fade'>
+          <div className='google-window'>
+            Existing account found. Proceed signing in?
+            <div className='form--button-container'>
+              <button type='button' onClick={() => setGoogleWindow(false)}>
+                Cancel
+              </button>
+              <button type='button' onClick={handleGoogleBypass}>
+                Proceed
+              </button>
+            </div>
+            {googleWindowError !== null && (
+              <div className='error'>{googleWindowError}</div>
+            )}
+          </div>
+        </div>
+      )}
     </dialog>
   );
 }
