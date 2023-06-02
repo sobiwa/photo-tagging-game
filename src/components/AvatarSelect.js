@@ -3,22 +3,13 @@
 import { useState, useRef } from 'react';
 import paintings from '../data/paintings';
 import defaultAvatar from '../assets/icons/profile-jesus.png';
+import AvatarButton from './AvatarButton';
 
 export default function AvatarSelect({ currentAvatar, providerAvatars }) {
   const selectBox = useRef(null);
   const [avatarOption, setAvatarOption] = useState(
     currentAvatar ?? defaultAvatar
   );
-
-  function styleBackgroundImage(src) {
-    const image = new Image();
-    image.src = src;
-    const { naturalHeight, naturalWidth } = image;
-    return {
-      backgroundImage: `url(${src})`,
-      backgroundSize: naturalHeight > naturalWidth ? 'auto 80%' : '80% auto',
-    };
-  }
 
   function showSelectBox() {
     selectBox.current.showModal();
@@ -35,6 +26,13 @@ export default function AvatarSelect({ currentAvatar, providerAvatars }) {
         e.clientY < dialogDimensions.top ||
         e.clientY > dialogDimensions.bottom)
     ) {
+      selectBox.current.close();
+    }
+  }
+
+  function selectAvatar(img) {
+    setAvatarOption(img);
+    if (selectBox?.current) {
       selectBox.current.close();
     }
   }
@@ -61,61 +59,44 @@ export default function AvatarSelect({ currentAvatar, providerAvatars }) {
                 </option>
               ))
             )}
-            {providerAvatars?.length &&
+            {extraAvatars &&
               providerAvatars.map((avatar) => (
                 <option key={`option-${avatar.id}`} value={avatar.photoURL}>
                   {avatar.id}
                 </option>
               ))}
           </select>
-          <button
-            onClick={showSelectBox}
-            type='button'
-            aria-label='avatar select'
-            className='select-box-button'
-            style={styleBackgroundImage(avatarOption)}
+          <AvatarButton
+            img={avatarOption}
+            description='avatar select'
+            handleClick={() => showSelectBox()}
           />
         </div>
       </label>
       <dialog ref={selectBox} className='select-box' onClick={closeOnClick}>
         <div className='select-box-options-container'>
-          <button
-            type='button'
-            className='select-box-button'
-            aria-label='default avatar - jesus from earthly delights'
-            onClick={() => {
-              setAvatarOption(defaultAvatar);
-              selectBox.current.close();
-            }}
-            style={styleBackgroundImage(defaultAvatar)}
+          <AvatarButton
+            img={defaultAvatar}
+            description='default avatar - jesus from earthly delights'
+            handleClick={() => selectAvatar(defaultAvatar)}
           />
           {paintings.map((painting) =>
             painting.targets.map((target) => (
-              <button
+              <AvatarButton
                 key={target.dbName}
-                type='button'
-                className='select-box-button'
-                aria-label={target.description}
-                onClick={() => {
-                  setAvatarOption(target.img);
-                  selectBox.current.close();
-                }}
-                style={styleBackgroundImage(target.img)}
+                img={target.img}
+                description={target.description}
+                handleClick={() => selectAvatar(target.img)}
               />
             ))
           )}
           {extraAvatars &&
             providerAvatars.map((avatar) => (
-              <button
+              <AvatarButton
                 key={avatar.id}
-                type='button'
-                className='select-box-button'
-                aria-label={avatar.id}
-                onClick={() => {
-                  setAvatarOption(avatar.photoURL);
-                  selectBox.current.close();
-                }}
-                style={styleBackgroundImage(avatar.photoURL)}
+                img={avatar.photoURL}
+                description={avatar.id}
+                handleClick={() => selectAvatar(avatar.photoURL)}
               />
             ))}
         </div>

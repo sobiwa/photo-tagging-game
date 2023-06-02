@@ -419,7 +419,9 @@ body {
 }
 
 .menu--card:hover {
-  scale: 1.1;
+  /* scale: 1.1; */
+  /* outline: 1px solid var(--extra-light); */
+  background-color: #903a3e76;
 }
 
 .menu--thumbnail-container {
@@ -1341,7 +1343,7 @@ button.google-button {
 }
 
 .avatar-select:hover {
-  scale: 1.1;
+  scale: 1.05;
 }
 
 .avatar-select:active {
@@ -1690,6 +1692,7 @@ img {
 
 .leaderboard-container .menu--card:hover {
   scale: 1.01;
+  background-color: transparent;
 }
 
 .fail-screen-container {
