@@ -6,13 +6,11 @@ import {
   auth,
   anonLogin,
   resetHighScores,
-  completeVerificationProcess,
-  getVerificationStatus,
   userVerificationComplete,
   bypassVerification,
 } from './firebase';
 import Loading from './components/Loading';
-import UserHeader from './components/user/UserHeader';
+import UserHeader from './components/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
 import formatTimer from './helpers/formatTimer';
@@ -27,16 +25,6 @@ export default function App() {
   const [timer, setTimer] = useState(null);
   const [user, setUser] = useState(null);
   const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
-  const userVerified = getVerificationStatus();
-  console.log(userVerified);
-  console.log(auth.currentUser?.emailVerified);
-
-  // useless as does not change auth.currentUser.emailVerified unless signed out
-  // useEffect(() => {
-  //   if (userVerified) {
-  //     completeVerificationProcess();
-  //   }
-  // }, [userVerified]);
 
   useEffect(() => {
     async function authStateObserver(firebaseUser) {
