@@ -1,12 +1,18 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import doneIcon from '../assets/icons/done.svg';
+import starIcon from '../assets/icons/star.svg';
+import incompleteIcon from '../assets/icons/incomplete.svg';
 
-export default function MenuCard({ painting, handleGameStart }) {
-  const { thumbnail, title, artist, year, targets } = painting;
+export default function MenuCard({ painting, handleGameStart, badge }) {
+  const { id, thumbnail, title, artist, year, targets } = painting;
   const [flip, setFlip] = useState(false);
   const [contentHeight, setContentHeight] = useState();
+  const [showBadgeInfo, setShowBadgeInfo] = useState(false);
   const frontRef = useRef(null);
   const backRef = useRef(null);
 
@@ -32,6 +38,11 @@ export default function MenuCard({ painting, handleGameStart }) {
     );
   }, [flip, dimensions]);
 
+  function handleBadgeClick(e) {
+    e.stopPropagation();
+    setShowBadgeInfo((prev) => !prev);
+  }
+
   return (
     <div
       className='menu--card'
@@ -39,6 +50,45 @@ export default function MenuCard({ painting, handleGameStart }) {
         setFlip((prev) => !prev);
       }}
     >
+      {!!badge && (
+        <div className='badge-container'>
+          <div className='badge-contents'>
+            <button
+              onClick={handleBadgeClick}
+              type='button'
+              className={`menu--card-badge ${
+                badge === 'incomplete'
+                  ? 'incomplete-badge'
+                  : badge.recordHolder
+                  ? 'record-badge'
+                  : ''
+              } `}
+            >
+              <img
+                src={
+                  badge === 'incomplete'
+                    ? incompleteIcon
+                    : badge.recordHolder
+                    ? starIcon
+                    : doneIcon
+                }
+                alt='painting completed'
+              />
+            </button>
+            {showBadgeInfo && (
+              <div className='menu--card-badge-info'>
+                {badge?.time ?? 'incomplete'}
+                <Link
+                  to={`leaderboards/${id}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  leaderboard
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {/* allow cards to be flips via tabbing */}
       {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
       <button type='button' className='tab-flipper' />

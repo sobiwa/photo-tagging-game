@@ -196,6 +196,17 @@ async function getUserScores() {
   return querySnapshot.docs;
 }
 
+export async function getUserData() {
+  const collectionRef = collection(
+    db,
+    `users/${auth.currentUser.uid}/paintings`
+  );
+  const q = query(collectionRef);
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return [];
+  return { id: auth.currentUser.uid, docs: querySnapshot.docs };
+}
+
 async function evaluateTime(paintingId, userData, leaderboard) {
   const { start, end, frontTime } = userData;
   const timeInSeconds = frontTime / 1000;

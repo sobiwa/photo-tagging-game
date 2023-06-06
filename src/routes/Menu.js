@@ -7,9 +7,10 @@ import getNewWindowPos from '../helpers/getNewWindowPos';
 import paintings from '../data/paintings';
 import tutorialImg from '../assets/paintings/thumbnails/bosch-the-haywain-triptych.jpg';
 import listIcon from '../assets/icons/list.svg';
+import useUserRecords from '../hooks/useUserRecords';
 
 export default function Menu() {
-  const { setGame, setTimer, handleGameStart } = useOutletContext();
+  const { setGame, setTimer, handleGameStart, user } = useOutletContext();
 
   const tutorialViewerRef = useRef(null);
   const reticleRef = useRef(null);
@@ -23,6 +24,8 @@ export default function Menu() {
 
   const [zoomLensPosition, setZoomLensPosition] = useState({ x: 0, y: 0 });
   const [instructionsVisible, setInstructionsVisible] = useState(false);
+
+  const userRecords = useUserRecords(user);
 
   const imgProperties = imgRef.current?.getBoundingClientRect();
 
@@ -92,54 +95,61 @@ export default function Menu() {
             overflow: 'hidden',
           }}
         >
-          <ol ref={instructionsRef} className='menu--instructions'>
-            <li>Pick a painting</li>
-            <li>Review the targets</li>
-            <li>Find all the targets in the painting</li>
-            <ul className='menu--advanced-instructions'>
-              <li>Zoom window is draggable and resizable</li>
-              <li>
-                Adjust lens zoom with +/↑ and -/↓
-                <div className='tutorial-viewer' ref={tutorialViewerRef}>
-                  <ZoomWindow
-                    ref={zoomWindowRef}
-                    lens={zoomLensRef.current}
-                    lensReticle={reticleRef.current}
-                    lensPosition={zoomLensPosition}
-                    container={tutorialViewerRef.current}
-                    imgProperties={imgProperties}
-                    imgSrc={tutorialImg}
-                    initSize={100}
-                    maxSize={150}
-                  />
-                  <div className='tutorial-viewer-img-container'>
-                    <div className='tutorial-viewer-img-wrapper'>
-                      <img
-                        ref={imgRef}
-                        className='tutorial--img'
-                        src={tutorialImg}
-                        alt='beautiful painting'
-                        onPointerMove={handleMoveLens}
-                      />
-                      <ZoomLens
-                        ref={zoomLensRef}
-                        position={zoomLensPosition}
-                        setPosition={setZoomLensPosition}
-                        handleMove={(e) => handleMoveLens(e)}
-                      >
-                        <div ref={reticleRef} className='reticle' />
-                      </ZoomLens>
-                    </div>
-                    <div className='tutorial--img-details'>
-                      <h5>The Haywain Triptych</h5>
-                      <h6>Hieronymus Bosch</h6>
-                      <h6>c. 1516</h6>
+          <div ref={instructionsRef} className='collapsible-contents'>
+            <ol className='menu--instructions'>
+              <li>Pick a painting</li>
+              <li>Review the targets</li>
+              <li>Find all the targets in the painting</li>
+              <ul className='menu--advanced-instructions'>
+                <li>Zoom window is draggable and resizable</li>
+                <li>
+                  Adjust lens zoom with +/↑ and -/↓
+                  <div className='tutorial-viewer' ref={tutorialViewerRef}>
+                    <ZoomWindow
+                      ref={zoomWindowRef}
+                      lens={zoomLensRef.current}
+                      lensReticle={reticleRef.current}
+                      lensPosition={zoomLensPosition}
+                      container={tutorialViewerRef.current}
+                      imgProperties={imgProperties}
+                      imgSrc={tutorialImg}
+                      initSize={100}
+                      maxSize={150}
+                    />
+                    <div className='tutorial-viewer-img-container'>
+                      <div className='tutorial-viewer-img-wrapper'>
+                        <img
+                          ref={imgRef}
+                          className='tutorial--img'
+                          src={tutorialImg}
+                          alt='beautiful painting'
+                          onPointerMove={handleMoveLens}
+                        />
+                        <ZoomLens
+                          ref={zoomLensRef}
+                          position={zoomLensPosition}
+                          setPosition={setZoomLensPosition}
+                          handleMove={(e) => handleMoveLens(e)}
+                        >
+                          <div ref={reticleRef} className='reticle' />
+                        </ZoomLens>
+                      </div>
+                      <div className='tutorial--img-details'>
+                        <h5>The Haywain Triptych</h5>
+                        <h6>Hieronymus Bosch</h6>
+                        <h6>c. 1516</h6>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </li>
-            </ul>
-          </ol>
+                </li>
+              </ul>
+            </ol>
+            <div className='instructions-warning'>
+              <strong>WARNING:</strong> Ranking evaluation begins immediately
+              upon starting game and cannot be overwritten. Be prepared to
+              finish game upon clicking start.
+            </div>
+          </div>
         </div>
       </div>
       <div className='menu--card-container'>
@@ -148,6 +158,7 @@ export default function Menu() {
             key={item.id}
             painting={item}
             handleGameStart={handleGameStart}
+            badge={userRecords[item.id]}
           />
         ))}
       </div>

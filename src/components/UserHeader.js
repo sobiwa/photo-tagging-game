@@ -15,7 +15,7 @@ export default function UserHeader({ user }) {
   }
 
   function closeOnClick(e) {
-    if (!dialogRef.current.contains(e.target)) {
+    if (dialogRef.current && !dialogRef.current.contains(e.target)) {
       setHudIsOpen(false);
     }
   }
