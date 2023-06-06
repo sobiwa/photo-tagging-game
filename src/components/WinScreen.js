@@ -1,26 +1,36 @@
-import { Link, useOutletContext, useParams } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import { getPaintingInfo } from '../data/paintings';
 
-export default function WinScreen({ newRecord, error }) {
-  const { time } = useOutletContext();
-  const { paintingId } = useParams();
+export default function WinScreen({ paintingId, newRecord, error }) {
+  const { highScore, isAnonymous, emailVerified } = newRecord;
+  const { time, setGame } = useOutletContext();
   const paintingInfo = getPaintingInfo(paintingId);
+
+  function clearGame() {
+    setGame(null);
+  }
+
   return (
     <div className='win-screen'>
-      {newRecord.highScore && (
+      {highScore && (
         <div className='new-record plaque'>
           <strong>High Score! Congratulations!</strong>
-          {newRecord.isAnonymous ? (
+          {isAnonymous || !emailVerified ? (
             <>
               <span className='login-warning'>
-                only signed in users appear on leaderboards
+                only verified users appear on leaderboards
               </span>
-              <Link to='/account/sign-in'>Create an account</Link>
+              <Link
+                to={`/account${isAnonymous ? '/sign-in' : ''}`}
+                onClick={() => clearGame()}
+              >
+                {isAnonymous ? 'Create an account' : 'Manage account'}
+              </Link>
             </>
           ) : (
             'You made it on the leaderboard!'
           )}
-          <Link to={`/leaderboards/${newRecord.paintingId}`}>
+          <Link to={`/leaderboards/${paintingId}`} onClick={() => clearGame()}>
             Visit Leaderboard
           </Link>
         </div>

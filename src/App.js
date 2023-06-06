@@ -1,8 +1,16 @@
 /* eslint-disable consistent-return */
 import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth, anonLogin, resetHighScores } from './firebase';
+import { onIdTokenChanged } from 'firebase/auth';
+import {
+  auth,
+  anonLogin,
+  resetHighScores,
+  completeVerificationProcess,
+  getVerificationStatus,
+  userVerificationComplete,
+  bypassVerification,
+} from './firebase';
 import Loading from './components/Loading';
 import UserHeader from './components/user/UserHeader';
 import waldoLogo from './assets/waldo.svg';
@@ -19,16 +27,34 @@ export default function App() {
   const [timer, setTimer] = useState(null);
   const [user, setUser] = useState(null);
   const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
+  const userVerified = getVerificationStatus();
+  console.log(userVerified);
+  console.log(auth.currentUser?.emailVerified);
+
+  // useless as does not change auth.currentUser.emailVerified unless signed out
+  // useEffect(() => {
+  //   if (userVerified) {
+  //     completeVerificationProcess();
+  //   }
+  // }, [userVerified]);
 
   useEffect(() => {
-    function authStateObserver(firebaseUser) {
-      console.log(firebaseUser);
-      setUser(firebaseUser ?? null);
+    async function authStateObserver(firebaseUser) {
       if (firebaseUser === null) {
         anonLogin();
+        return;
       }
+      console.log(firebaseUser);
+      const verificationComplete = await userVerificationComplete();
+      setUser({
+        firebase: firebaseUser,
+        providerIsGoogle: firebaseUser.providerData.some(
+          (provider) => provider.providerId === 'google.com'
+        ),
+        verificationComplete,
+      });
     }
-    onAuthStateChanged(auth, authStateObserver);
+    onIdTokenChanged(auth, authStateObserver);
   }, []);
 
   useEffect(() => {
@@ -67,10 +93,15 @@ export default function App() {
         <Link to='/' className='logo-container'>
           <img src={waldoLogo} alt="Where's waldo?" />
         </Link>
-        <button className='dev' type='button' onClick={() => resetHighScores()}>
-          update
-        </button>
-        {!game && <UserHeader user={user} />}
+        <div className='dev'>
+          <button type='button' onClick={() => resetHighScores()}>
+            update
+          </button>
+          <button type='button' onClick={() => bypassVerification()}>
+            verify
+          </button>
+        </div>
+        {!game && <UserHeader user={user?.firebase} />}
         {game && (
           <div className='game-header'>
             <Eye

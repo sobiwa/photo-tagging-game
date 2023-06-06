@@ -27,7 +27,7 @@ import {
   reauthenticateWithCredential,
   linkWithCredential,
   linkWithPopup,
-  getAdditionalUserInfo,
+  sendEmailVerification,
 } from 'firebase/auth';
 import paintings from './data/paintings';
 
@@ -77,6 +77,10 @@ export function getUid() {
   return auth.currentUser?.uid;
 }
 
+export function getVerificationStatus() {
+  return auth.currentUser?.emailVerified;
+}
+
 export async function fetchLeaderboard(paintingId) {
   const paintingRef = doc(db, `leaderboards/${paintingId}`);
   const docSnap = await getDoc(paintingRef);
@@ -115,17 +119,6 @@ export async function emailLogin(email, password) {
     password
   );
   return userCredential;
-}
-
-async function getUserScores() {
-  const collectionRef = collection(
-    db,
-    `users/${auth.currentUser.uid}/paintings`
-  );
-  const q = query(collectionRef, where('frontTime', '!=', null));
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) return null;
-  return querySnapshot.docs;
 }
 
 export async function updateUserInfo(username, avatar) {
@@ -192,61 +185,168 @@ export async function timeStampGameStart(paintingId) {
   return 'time logged';
 }
 
+async function getUserScores() {
+  const collectionRef = collection(
+    db,
+    `users/${auth.currentUser.uid}/paintings`
+  );
+  const q = query(collectionRef, where('frontTime', '!=', null));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return null;
+  return querySnapshot.docs;
+}
+
 async function evaluateTime(paintingId, userData, leaderboard) {
   const { start, end, frontTime } = userData;
   const timeInSeconds = frontTime / 1000;
   if (Math.abs(end - start - timeInSeconds) > 8)
     throw new Error('Application time and server time do not match');
   if (frontTime < leaderboard[leaderboard.length - 1].ms) {
-    const { photoURL, displayName, uid, isAnonymous } = auth.currentUser;
-    if (!isAnonymous) {
+    const { photoURL, displayName, uid, isAnonymous, emailVerified } =
+      auth.currentUser;
+    if (!isAnonymous && emailVerified) {
       leaderboard.pop();
       leaderboard.push({ ms: frontTime, photoURL, uid, username: displayName });
       leaderboard.sort((a, b) => a.ms - b.ms);
       const leaderboardRef = doc(db, `leaderboards/${paintingId}`);
       await setDoc(leaderboardRef, { leaderboard });
     }
-    return { highScore: true, isAnonymous };
+    return { highScore: true, isAnonymous, emailVerified };
   }
   return { highScore: false };
 }
 
+export async function timeStampGameEnd(paintingId, time) {
+  const docRef = doc(
+    db,
+    `users/${auth.currentUser.uid}/paintings/${paintingId}`
+  );
+  const docSnap = await getDoc(docRef);
+  if (docSnap.data()?.end) return { highScore: false };
+  await setDoc(
+    docRef,
+    { end: serverTimestamp(), frontTime: time },
+    { merge: true }
+  );
+  const [userData, leaderboard] = await Promise.all([
+    fetchUserData(paintingId),
+    fetchLeaderboard(paintingId),
+  ]);
+  const scoreEvaluation = await evaluateTime(paintingId, userData, leaderboard);
+  return scoreEvaluation;
+}
+
 async function postAnonScores(userScores) {
-  const leaderboardData = await Promise.all(
-    userScores.map((item) => fetchLeaderboard(item.id))
-  );
-  await Promise.all(
-    userScores.map((document, index) => {
-      const userData = document.data();
-      const leaderboard = leaderboardData[index];
-      return evaluateTime(document.id, userData, leaderboard);
-    })
-  );
+  let leaderboardData;
+  try {
+    leaderboardData = await Promise.all(
+      userScores.map((item) => fetchLeaderboard(item.id))
+    );
+  } catch (err) {
+    throw new Error('error fetching leaderboards');
+  }
+  try {
+    await Promise.all(
+      userScores.map((document, index) => {
+        const userData = document.data();
+        const leaderboard = leaderboardData[index];
+        return evaluateTime(document.id, userData, leaderboard);
+      })
+    );
+  } catch (err) {
+    throw new Error(`error updating leaderboards${err.message}`);
+  }
+}
+
+async function beginVerificationProcess() {
+  await sendEmailVerification(auth.currentUser);
+  const userRef = doc(db, `users/${auth.currentUser.uid}`);
+  await setDoc(userRef, { verified: false }, { merge: true });
+}
+
+export async function resendVerificationEmail() {
+  await sendEmailVerification(auth.currentUser);
+}
+
+//dev
+export async function bypassVerification() {
+  const userScores = await getUserScores();
+  if (userScores) {
+    try {
+      // refresh token to reflect up-to-date verification status
+      // and grant permission in firebase rules
+      await auth.currentUser.getIdToken(true);
+
+      console.log('posting scores');
+      await postAnonScores(userScores);
+    } catch (err) {
+      throw new Error(`err posting scores: ${err.message}`);
+    }
+  }
+}
+
+export async function completeVerificationProcess() {
+  // reload user to accurately read auth.currentUser.emailVerified
+  await auth.currentUser.reload();
+
+  if (!auth.currentUser.emailVerified) throw new Error('Verification failed');
+  const userRef = doc(db, `users/${auth.currentUser.uid}`);
+
+  // abort if process has already completed
+  const userData = await getDoc(userRef);
+  if (userData.exists()) {
+    const { verified } = userData.data();
+    if (verified) throw new Error('Records show email is already verified');
+  }
+
+  const userScores = await getUserScores();
+  if (userScores) {
+    try {
+      // refresh token to reflect up-to-date verification status
+      // and grant permission in firebase rules
+      await auth.currentUser.getIdToken(true);
+
+      console.log('posting scores');
+      await postAnonScores(userScores);
+    } catch (err) {
+      throw new Error(`err posting scores: ${err.message}`);
+    }
+  }
+  await setDoc(userRef, { verified: true }, { merge: true });
+  await auth.currentUser.getIdToken(true);
+}
+
+export async function userVerificationComplete() {
+  const userRef = doc(db, `users/${auth.currentUser.uid}`);
+  const userData = await getDoc(userRef);
+  return userData.exists() ? userData.data().verified : null;
 }
 
 export async function emailSignUp(email, password) {
   if (auth.currentUser && auth.currentUser.isAnonymous) {
     const credential = EmailAuthProvider.credential(email, password);
     try {
-
       // unlike google, sign in and sign up are separate,
       // therefore goes straight into linking
       await linkWithCredential(auth.currentUser, credential);
-      const userScores = await getUserScores();
-      if (userScores) {
-        await postAnonScores(userScores);
-      }
+      await beginVerificationProcess();
       return 'Anonymous account successfully upgraded';
     } catch (err) {
-      throw new Error('Error upgrading anonymous account');
+      if (err.code === 'auth/email-already-in-use') {
+        throw new Error('email');
+      }
+      throw new Error(`Error upgrading anonymous account: ${err.code}`);
     }
   } else {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    return userCredential;
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      return 'Account successfully created';
+    } catch (err) {
+      if (err.code === 'auth/email-already-in-use') {
+        throw new Error('email');
+      }
+      throw new Error(`Error creating account: ${err.code}`);
+    }
   }
 }
 
@@ -281,43 +381,9 @@ export async function googleBypass() {
   await signInWithPopup(auth, provider);
 }
 
-export async function timeStampGameEnd(paintingId, time) {
-  const docRef = doc(
-    db,
-    `users/${auth.currentUser.uid}/paintings/${paintingId}`
-  );
-  const docSnap = await getDoc(docRef);
-  if (docSnap.data()?.end) return { highScore: false };
-  await setDoc(
-    docRef,
-    { end: serverTimestamp(), frontTime: time },
-    { merge: true }
-  );
-  const [userData, leaderboard] = await Promise.all([
-    fetchUserData(paintingId),
-    fetchLeaderboard(paintingId),
-  ]);
-  const scoreEvaluation = await evaluateTime(paintingId, userData, leaderboard);
-  return scoreEvaluation;
-}
-
 export async function getUserTime(paintingId) {
   const userData = await fetchUserData(paintingId);
   return userData?.frontTime;
 }
-
-// export async function timeStampGameStart(paintingId) {
-//   const docRef = doc(db, `users/${auth.currentUser.uid}`);
-//   const docSnap = await getDoc(docRef);
-//   if (docSnap.exists()) {
-//     if (docSnap.data()[paintingId]) return 'data exists';
-//     await updateDoc(docRef, {
-//       [`${paintingId}.start`]: serverTimestamp(),
-//     });
-//     return 'time logged';
-//   }
-//   await setDoc(docRef, { [paintingId]: { start: serverTimestamp() } });
-//   return 'time logged';
-// }
 
 export { auth };

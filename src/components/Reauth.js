@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Form } from 'react-router-dom';
 import { reauthGoogle } from '../firebase';
 import googleIcon from '../assets/icons/google-btn.svg';
 
-export default function Reauth({ user, setUpdate, close }) {
+export default function Reauth({ googleUser, setUpdate, close }) {
   const [googleError, setGoogleError] = useState(null);
   const [password, setPassword] = useState('');
 
@@ -18,14 +19,14 @@ export default function Reauth({ user, setUpdate, close }) {
   return (
     <>
       <div className='modal-heading'>Reauthentication required</div>
-      {user.providerData[0].providerId === 'google.com' ? (
+      {googleUser ? (
         <button type='button' className='google-button' onClick={handleGoogle}>
           <img src={googleIcon} alt='google reauthentication' />
           Reauthenticate with Google
           {googleError && <span className='error'>{googleError.message}</span>}
         </button>
       ) : (
-        <>
+        <Form method='post' action='/account'>
           <label htmlFor='reauth-password'>
             Password
             <input
@@ -46,11 +47,16 @@ export default function Reauth({ user, setUpdate, close }) {
             >
               Cancel
             </button>
-            <button type='submit' name='intent' value='reauth'>
+            <button
+              type='submit'
+              name='intent'
+              value='reauth'
+              onClick={() => console.log('hit reauth button')}
+            >
               Submit
             </button>
           </div>
-        </>
+        </Form>
       )}
     </>
   );

@@ -28,21 +28,26 @@ export async function action({ request }) {
     } catch (err) {
       // bypass error - bad words allowed if error is encountered - in case API ever fails or limit is reached ¯\_(ツ)_/¯
       console.log(err.message);
+      return 'bad language filter error';
     }
   }
   try {
     await emailSignUp(email, password);
+  } catch (err) {
+    return err.message;
+  }
+  try {
     await updateUserInfo(username, avatar);
-    return redirect('/');
+    return redirect('/account');
   } catch (error) {
-    return error.code;
+    return `Account created, but error updating info: ${error.code}. Manage details on the account page.`;
   }
 }
 
 export default function SignUp() {
   const { user } = useOutletContext();
 
-  const [username, setUsername] = useState(user?.displayName ?? '');
+  const [username, setUsername] = useState(user?.firebase.displayName ?? '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -52,6 +57,10 @@ export default function SignUp() {
   const actionResponse = useActionData();
   const navigation = useNavigation();
 
+  useEffect(() => {
+    setUsername(user?.firebase.displayName ?? '');
+  }, [user]);
+
   function getNewError() {
     let newError = { handled: true, message: null };
     switch (actionResponse) {
@@ -59,7 +68,7 @@ export default function SignUp() {
         newError.for = 'password';
         newError.message = actionResponse;
         break;
-      case 'auth/email-already-in-use':
+      case 'email':
         newError.for = 'email';
         newError.message = 'email already in use';
         break;
@@ -87,10 +96,10 @@ export default function SignUp() {
     <Form className='sign-up-form' method='post'>
       <ul>
         <li>
-          <AvatarSelect currentAvatar={user?.photoURL ?? null} />
+          <AvatarSelect user={user?.firebase} />
         </li>
         <li>
-          <label htmlFor='username'>
+          <label htmlFor='username1'>
             Username
             {error.for === 'username' && (
               <span className='error'>{error.message}</span>
@@ -98,7 +107,7 @@ export default function SignUp() {
             <input
               autoFocus
               required
-              id='username'
+              id='username1'
               type='text'
               name='username'
               value={username}

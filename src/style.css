@@ -28,6 +28,11 @@
   box-sizing: border-box;
 }
 
+button {
+  appearance: none;
+  border: none;
+}
+
 :root {
   --primary: #dfbd77;
   --secondary: #903a3e;
@@ -674,17 +679,34 @@ body {
   letter-spacing: 0.1em;
 }
 
-.win-screen a {
+.win-screen button {
+  appearance: none;
+  background-color: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: inherit;
+  padding: 6px;
+  font-weight: inherit;
+  margin-top: 6px;
+  margin-bottom: 3px;
+}
+
+.win-screen a,
+.win-screen button {
   text-decoration: none;
   color: #dfbd77;
   font-weight: 700;
   border: 1px solid #dfbd77;
-  padding: 16px;
-  margin: 16px;
   transition: 0.3s;
 }
 
-.win-screen a:hover {
+.win-screen a {
+  padding: 16px;
+  margin: 16px;
+}
+
+.win-screen a:hover,
+.win-screen button:hover {
   background-color: var(--primary);
   color: var(--secondary);
 }
@@ -858,6 +880,10 @@ form label:has(.error) input {
 
 .account-form {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(300px, 100%);
 }
 
 .form-update-wrapper {
@@ -925,6 +951,10 @@ form input:focus,
   outline: 3px solid var(--secondary);
 }
 
+form.login-warning {
+  gap: 6px;
+}
+
 .form--button-container {
   width: 100%;
   display: flex;
@@ -934,8 +964,18 @@ form input:focus,
   margin-top: 16px;
 }
 
-.account-form .form--button-container button {
-  width: min-content;
+.login-warning .form--button-container {
+  margin-top: 0;
+  flex-direction: column;
+  align-items: center;
+}
+
+form.login-warning .form--button-container button {
+  width: 100%;
+}
+
+form.login-warning .form--button-container button:nth-child(2) {
+  width: fit-content;
 }
 
 .account-form .form--button-container button,
@@ -951,6 +991,10 @@ form input:focus,
 }
 
 .account-form .delete-container button.delete {
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.05em;
+  font-weight: 600;
   margin-top: 30px;
   background-color: var(--secondary);
   color: var(--extra-light);
@@ -1082,6 +1126,7 @@ button.google-button {
 }
 
 .google-window {
+  z-index: 99;
   background-color: var(--primary);
   color: var(--secondary);
   font-weight: 600;
@@ -1256,7 +1301,7 @@ button.google-button {
   appearance: none;
   border: none;
   background-color: var(--secondary);
-  color: var(--extra-light);
+  color: var(--tertiary);
   width: 100%;
   padding-block: 16px;
   font: inherit;
@@ -1735,16 +1780,21 @@ img {
 
 .login-warning {
   margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
   font-size: 0.8rem;
+  text-align: center;
 }
 
-.login-warning a {
+.login-warning a,
+.login-warning button {
   font-size: 1rem;
   color: var(--secondary);
 }
+
+/* .login-warning button:nth-child(2) {
+  width: fit-content;
+  margin-top: 8px;
+  margin-inline: auto;
+} */
 
 .login-warning a:hover {
   text-decoration: none;
@@ -1758,4 +1808,8 @@ img {
   position: absolute;
   margin-inline: auto;
   width: 100px;
+}
+
+.min-content {
+  width: min-content;
 }

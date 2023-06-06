@@ -1,14 +1,14 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import paintings from '../data/paintings';
 import defaultAvatar from '../assets/icons/profile-jesus.png';
 import AvatarButton from './AvatarButton';
 
-export default function AvatarSelect({ currentAvatar, providerAvatars }) {
+export default function AvatarSelect({ user, providerAvatars }) {
   const selectBox = useRef(null);
   const [avatarOption, setAvatarOption] = useState(
-    currentAvatar ?? defaultAvatar
+    user?.photoURL ?? defaultAvatar
   );
 
   function showSelectBox() {
@@ -36,6 +36,10 @@ export default function AvatarSelect({ currentAvatar, providerAvatars }) {
       selectBox.current.close();
     }
   }
+
+  useEffect(() => {
+    setAvatarOption(user?.photoURL ?? defaultAvatar);
+  }, [user]);
 
   const extraAvatars = providerAvatars?.length > 0;
 

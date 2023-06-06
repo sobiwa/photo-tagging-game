@@ -74,6 +74,7 @@ export default function SignIn() {
     ref.current.showModal();
   }, []);
 
+  // TODO: handle auth/email-already-in-use when user signs up manually with gmail email
   async function handleGoogle() {
     try {
       await googleLogin();

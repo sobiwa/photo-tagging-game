@@ -80,11 +80,11 @@ export default function Leaderboard() {
                 <td className='leaderboard--user-info'>
                   <div className='leaderboard--user-avatar'>
                     <img
-                      src={user?.photoURL ?? defaultProfileIcon}
+                      src={user?.firebase.photoURL ?? defaultProfileIcon}
                       alt='user'
                     />
                   </div>
-                  {user?.displayName ?? user?.email}
+                  {user?.firebase.displayName ?? user?.firebase.email}
                 </td>
                 <td className='leaderboard--time'>{formatTimer(userTime)}</td>
               </tr>

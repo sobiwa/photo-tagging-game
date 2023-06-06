@@ -1,7 +1,6 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-await-in-loop */
 import { useState, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
 import {
   Form,
   Link,
@@ -17,18 +16,18 @@ import {
   deleteAccount,
   reauthEmail,
   updateLeaderboardUser,
-  emailLogin,
+  completeVerificationProcess,
+  resendVerificationEmail,
 } from '../firebase';
 import AvatarSelect from '../components/AvatarSelect';
 import Reauth from '../components/Reauth';
 import badWordsFilter from '../helpers/badWords';
-import LoginForm from '../components/user/LoginForm';
 
 export async function action({ request }) {
   const formData = await request.formData();
-  const { intent, avatar, username, password, email } =
-    Object.fromEntries(formData);
+  const { intent, avatar, username, password } = Object.fromEntries(formData);
   if (intent === 'edit') {
+    console.log('editing');
     if (username) {
       try {
         const badWord = await badWordsFilter(username);
@@ -42,10 +41,14 @@ export async function action({ request }) {
     }
     try {
       await updateUserInfo(username, avatar);
+    } catch (error) {
+      return { message: `Error updating user info: ${error.code}` };
+    }
+    try {
       await updateLeaderboardUser();
       return { message: 'Information updated' };
     } catch (error) {
-      return { message: error.code };
+      return { message: `Error updating leaderboards: ${error.code}` };
     }
   } else if (intent === 'delete') {
     try {
@@ -59,7 +62,22 @@ export async function action({ request }) {
       await reauthEmail(password);
       return { onDelete: true, message: 'Reauthorization successful' };
     } catch (error) {
-      return { onDelete: true, message: error.code };
+      console.log(error);
+      return { onReauth: true, message: error.code };
+    }
+  } else if (intent === 'verify') {
+    try {
+      await completeVerificationProcess();
+      return { message: 'Verification complete' };
+    } catch (error) {
+      return { message: error.message };
+    }
+  } else if (intent === 'resend') {
+    try {
+      await resendVerificationEmail();
+      return { message: 'Verification email sent' };
+    } catch (error) {
+      return { message: error.message };
     }
   }
 }
@@ -74,14 +92,15 @@ export default function Account() {
   const loggingIn = pathname.split('/').includes('sign-in');
 
   const deleteRef = useRef(null);
+  const reauthRef = useRef(null);
 
-  const [username, setUsername] = useState(user?.displayName ?? '');
+  const [username, setUsername] = useState(user?.firebase.displayName ?? '');
   const [update, setUpdate] = useState(null);
 
   // refreshes state regardless if actionResponse is unchanged
   useEffect(() => {
     if (loggingIn) return;
-    if (navigation.state === 'submitting') {
+    if (navigation.state === 'submitting' && !actionResponse?.onReauth) {
       setUpdate(null);
     } else if (navigation.state === 'idle') {
       setUpdate(actionResponse ?? null);
@@ -89,7 +108,23 @@ export default function Account() {
   }, [navigation.state]);
 
   useEffect(() => {
-    setUsername(user?.displayName ?? '');
+    if (
+      actionResponse?.message === 'auth/requires-recent-login' &&
+      reauthRef?.current &&
+      !reauthRef.current.hasAttribute('open')
+    ) {
+      reauthRef.current.showModal();
+    } else if (
+      actionResponse?.message === 'Reauthorization successful' &&
+      reauthRef?.current &&
+      reauthRef.current.hasAttribute('open')
+    ) {
+      reauthRef.current.close();
+    }
+  }, [actionResponse]);
+
+  useEffect(() => {
+    setUsername(user?.firebase.displayName ?? '');
   }, [user]);
 
   if (update?.message === 'Account deleted') {
@@ -101,7 +136,7 @@ export default function Account() {
     );
   }
 
-  if (user === null && !loggingIn) {
+  if (!user && !loggingIn) {
     return (
       <div className='error-page plaque'>
         Must be logged in to view account details
@@ -111,8 +146,8 @@ export default function Account() {
 
   let providerAvatars;
 
-  if (user && !user.isAnonymous) {
-    providerAvatars = user.providerData
+  if (!!user && !user.firebase.isAnonymous) {
+    providerAvatars = user.firebase.providerData
       .map((profile) => ({
         photoURL: profile.photoURL,
         id: profile.providerId,
@@ -120,117 +155,133 @@ export default function Account() {
       .filter((avatar) => avatar.photoURL && avatar.id !== 'password');
   }
 
-  // function openLoginForm() {
-  //   flushSync(() => {
-  //     setShowLogin(true);
-  //   });
-  //   loginFormRef.current.showModal();
-  // }
-
-  // function closeLoginForm() {
-  //   loginFormRef.current.close();
-  //   setShowLogin(false);
-  // }
-
   return (
-    <>
-      {user !== null && (
-        <Form className='account-form' method='post' action='/account'>
-          {/* {showLogin && (
-        <LoginForm ref={loginFormRef} close={() => closeLoginForm()} />
-      )} */}
-          <ul>
-            <li>
-              <AvatarSelect
-                currentAvatar={user.photoURL}
-                providerAvatars={providerAvatars}
-              />
-            </li>
-            <li>
-              <label htmlFor='username'>
-                Username
-                <input
-                  id='username'
-                  type='text'
-                  name='username'
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  maxLength={28}
+    <div className='account-form'>
+      {!!user && (
+        <>
+          <Form method='post' action='/account'>
+            <ul>
+              <li>
+                <AvatarSelect
+                  user={user.firebase}
+                  providerAvatars={providerAvatars}
                 />
-              </label>
-            </li>
-            <li className='form--button-container'>
-              <button type='button' onClick={() => navigate(-1)}>
-                Back
-              </button>
-              <button type='submit' name='intent' value='edit'>
-                Submit Changes
-              </button>
-            </li>
-            {user.isAnonymous && (
-              <li className='login-warning'>
-                Your current information is temporary and anonymous.{' '}
-                <Link to='sign-in'>sign in or create an account</Link> to appear
-                on leaderboards.
               </li>
-            )}
-            {!user.isAnonymous && (
-              <li className='delete-container'>
+              <li>
+                <label htmlFor='username'>
+                  Username
+                  <input
+                    id='username'
+                    type='text'
+                    name='username'
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    maxLength={28}
+                  />
+                </label>
+              </li>
+              <li className='form--button-container'>
+                <Link to='/'>Home</Link>
                 <button
-                  className='delete'
-                  type='button'
-                  onClick={() => deleteRef.current.showModal()}
+                  type='submit'
+                  name='intent'
+                  value='edit'
+                  className='min-content'
                 >
-                  Delete Account
+                  Submit Changes
                 </button>
-                <dialog className='modal delete-account' ref={deleteRef}>
-                  <div className='modal-contents'>
-                    {update?.message === 'auth/requires-recent-login' ? (
-                      <Reauth
-                        user={user}
-                        setUpdate={setUpdate}
-                        close={() => deleteRef.current.close()}
-                      />
-                    ) : (
-                      <>
-                        Are you sure you want to delete your account?
-                        <div className='form--button-container'>
-                          <button
-                            type='button'
-                            onClick={() => deleteRef.current.close()}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            className='final-delete'
-                            type='submit'
-                            name='intent'
-                            value='delete'
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </>
-                    )}
-                    {update !== null && update.onDelete && (
-                      <div className='form-update-wrapper'>
-                        <div className='form-update'>{update.message}</div>
-                      </div>
-                    )}
-                  </div>
-                </dialog>
               </li>
-            )}
-          </ul>
-          {update !== null && !update.onDelete && (
+            </ul>
+          </Form>
+          {!!update && !update.onDelete && !update.onReauth && (
             <div className='form-update-wrapper'>
               <div className='form-update'>{update.message}</div>
             </div>
           )}
-        </Form>
+
+          {user.firebase.isAnonymous && (
+            <div className='login-warning'>
+              Your current information is temporary and anonymous.{' '}
+              <Link to='sign-in'>sign in or create an account</Link> to appear
+              on leaderboards.
+            </div>
+          )}
+          {!user.firebase.isAnonymous &&
+            !user.providerIsGoogle &&
+            !user.verificationComplete && (
+              <Form className='login-warning' method='post' action='/account'>
+                Email verification incomplete. Once link is clicked in
+                verification email, complete verification here.
+                <div className='form--button-container'>
+                  <button type='submit' name='intent' value='verify'>
+                    Verify
+                  </button>
+                  <button type='submit' name='intent' value='resend'>
+                    Resend email
+                  </button>
+                </div>
+              </Form>
+            )}
+          {!user.firebase.isAnonymous && (
+            <div className='delete-container'>
+              <button
+                className='delete'
+                type='button'
+                onClick={() => deleteRef.current.showModal()}
+              >
+                Delete Account
+              </button>
+              <dialog className='modal delete-account' ref={deleteRef}>
+                <Form
+                  className='modal-contents'
+                  method='post'
+                  action='/account'
+                >
+                  Are you sure you want to delete your account?
+                  <div className='form--button-container'>
+                    <button
+                      type='button'
+                      onClick={() => deleteRef.current.close()}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className='final-delete'
+                      type='submit'
+                      name='intent'
+                      value='delete'
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  {update !== null && update.onDelete && (
+                    <div className='form-update-wrapper'>
+                      <div className='form-update'>{update.message}</div>
+                    </div>
+                  )}
+                </Form>
+              </dialog>
+            </div>
+          )}
+          <dialog className='modal delete-account' ref={reauthRef}>
+            <Reauth
+              googleUser={user.providerIsGoogle}
+              setUpdate={setUpdate}
+              close={() => {
+                reauthRef.current.close();
+                deleteRef.current.close();
+              }}
+            />
+            {update?.onReauth && (
+              <div className='form-update-wrapper'>
+                <div className='form-update'>{update.message}</div>
+              </div>
+            )}
+          </dialog>
+        </>
       )}
       <Outlet />
-    </>
+    </div>
   );
 }
 

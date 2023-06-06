@@ -1,4 +1,6 @@
 export default async function badWordsFilter(word) {
+  // reached 85% quota 6/5/23
+  return {'is-bad': false};
   const url =
     'https://neutrinoapi-bad-word-filter.p.rapidapi.com/bad-word-filter';
   const options = {

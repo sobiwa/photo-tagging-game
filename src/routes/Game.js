@@ -60,7 +60,7 @@ export default function Game() {
         timer.current - timer.start
       );
       if (results.highScore) {
-        setNewRecord({ paintingId, ...results });
+        setNewRecord(results);
       }
     } catch (err) {
       console.log(err);
@@ -74,7 +74,6 @@ export default function Game() {
     if (ranked.current) {
       submitTime();
     }
-    setGame(null);
   }
 
   function checkForWin(hit) {
@@ -134,7 +133,13 @@ export default function Game() {
 
   return (
     <div className='game-container'>
-      {gameWon && <WinScreen newRecord={newRecord} error={timeError} />}
+      {gameWon && (
+        <WinScreen
+          paintingId={paintingId}
+          newRecord={newRecord}
+          error={timeError}
+        />
+      )}
       {error !== null && <FailScreen message={error} resume={resumeGame} />}
       <Viewer
         painting={paintingId}
