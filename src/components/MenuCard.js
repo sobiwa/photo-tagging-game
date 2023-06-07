@@ -52,9 +52,13 @@ export default function MenuCard({ painting, handleGameStart, badge }) {
     >
       {!!badge && (
         <div className='badge-container'>
-          <div className='badge-contents'>
+          <div
+            className='badge-contents'
+            onMouseLeave={() => setShowBadgeInfo(false)}
+          >
             <button
               onClick={handleBadgeClick}
+              onMouseEnter={() => setShowBadgeInfo(true)}
               type='button'
               className={`menu--card-badge ${
                 badge === 'incomplete'

@@ -45,14 +45,15 @@ const db = getFirestore(firebase);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
+// for dev. firebase rules must be adjusted in order to function
 export async function resetHighScores() {
   const promises = [];
   for (const painting of paintings) {
-    let time = 6000 - 600;
+    let time = 600000 - 60000;
     const paintingRef = doc(db, `leaderboards/${painting.id}`);
     const array = paintings.flatMap((item) =>
       item.targets.map((target) => {
-        time += 600;
+        time += 60000;
         return {
           computer: true,
           ms: time,
@@ -203,7 +204,6 @@ export async function getUserData() {
   );
   const q = query(collectionRef);
   const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) return [];
   return { id: auth.currentUser.uid, docs: querySnapshot.docs };
 }
 
@@ -279,7 +279,7 @@ export async function resendVerificationEmail() {
   await sendEmailVerification(auth.currentUser);
 }
 
-//dev
+// dev
 export async function bypassVerification() {
   const userScores = await getUserScores();
   if (userScores) {

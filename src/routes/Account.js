@@ -9,7 +9,6 @@ import {
   useNavigation,
   Outlet,
   useLocation,
-  useNavigate,
 } from 'react-router-dom';
 import {
   updateUserInfo,
@@ -18,6 +17,7 @@ import {
   updateLeaderboardUser,
   completeVerificationProcess,
   resendVerificationEmail,
+  reauthGoogle,
 } from '../firebase';
 import AvatarSelect from '../components/AvatarSelect';
 import Reauth from '../components/Reauth';
@@ -27,7 +27,6 @@ export async function action({ request }) {
   const formData = await request.formData();
   const { intent, avatar, username, password } = Object.fromEntries(formData);
   if (intent === 'edit') {
-    console.log('editing');
     if (username) {
       try {
         const badWord = await badWordsFilter(username);
@@ -65,6 +64,13 @@ export async function action({ request }) {
       console.log(error);
       return { onReauth: true, message: error.code };
     }
+  } else if (intent === 'reauth-google') {
+    try {
+      await reauthGoogle();
+      return { onDelete: true, message: 'Reauthorization successful' };
+    } catch (error) {
+      return { onReauth: true, message: error.message };
+    }
   } else if (intent === 'verify') {
     try {
       await completeVerificationProcess();
@@ -80,11 +86,11 @@ export async function action({ request }) {
       return { message: error.message };
     }
   }
+  return {};
 }
 
 export default function Account() {
   const navigation = useNavigation();
-  const navigate = useNavigate();
   const { user } = useOutletContext();
   const actionResponse = useActionData();
   const { pathname } = useLocation();

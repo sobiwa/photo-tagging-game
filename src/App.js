@@ -5,9 +5,7 @@ import { onIdTokenChanged } from 'firebase/auth';
 import {
   auth,
   anonLogin,
-  resetHighScores,
   userVerificationComplete,
-  bypassVerification,
 } from './firebase';
 import Loading from './components/Loading';
 import UserHeader from './components/UserHeader';
@@ -32,15 +30,22 @@ export default function App() {
         anonLogin();
         return;
       }
-      console.log(firebaseUser);
-      const verificationComplete = await userVerificationComplete();
-      setUser({
-        firebase: firebaseUser,
-        providerIsGoogle: firebaseUser.providerData.some(
-          (provider) => provider.providerId === 'google.com'
-        ),
-        verificationComplete,
-      });
+      if (firebaseUser.isAnonymous) {
+        setUser({
+          firebase: firebaseUser,
+          providerIsGoogle: false,
+          verificationComplete: false,
+        });
+      } else {
+        const verificationComplete = await userVerificationComplete();
+        setUser({
+          firebase: firebaseUser,
+          providerIsGoogle: firebaseUser.providerData.some(
+            (provider) => provider.providerId === 'google.com'
+          ),
+          verificationComplete,
+        });
+      }
     }
     onIdTokenChanged(auth, authStateObserver);
   }, []);
@@ -81,14 +86,6 @@ export default function App() {
         <Link to='/' className='logo-container'>
           <img src={waldoLogo} alt="Where's waldo?" />
         </Link>
-        <div className='dev'>
-          <button type='button' onClick={() => resetHighScores()}>
-            update
-          </button>
-          <button type='button' onClick={() => bypassVerification()}>
-            verify
-          </button>
-        </div>
         {!game && <UserHeader user={user?.firebase} />}
         {game && (
           <div className='game-header'>

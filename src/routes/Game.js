@@ -63,7 +63,6 @@ export default function Game() {
         setNewRecord(results);
       }
     } catch (err) {
-      console.log(err);
       setTimeError(err.message);
     }
   }
@@ -91,6 +90,7 @@ export default function Game() {
   }
 
   function handleHit(reticlePos) {
+    if (!game) return;
     const hit = waldos.find((waldo) => waldoIsHit(waldo, reticlePos));
     if (!hit) return;
     setGame((prev) => ({

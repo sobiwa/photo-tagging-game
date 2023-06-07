@@ -1833,6 +1833,7 @@ img {
 
 .badge-contents {
   position: relative;
+  z-index: 1;
 }
 
 .menu--card-badge {
@@ -1851,14 +1852,6 @@ img {
   transition: 0.2s;
 }
 
-.menu--card-badge:hover {
-  scale: 1.05;
-}
-
-.menu--card-badge:active {
-  scale: 1;
-}
-
 .menu--card-badge.record-badge,
 .badge-contents:has(.menu--card-badge.record-badge) .menu--card-badge-info {
   background-color: var(--tertiary);
@@ -1869,6 +1862,14 @@ img {
 .badge-contents:has(.menu--card-badge.incomplete-badge) .menu--card-badge-info {
   background-color: black;
   color: white;
+}
+
+.menu--card-badge:focus-visible {
+  outline: 2px solid var(--primary);
+}
+
+.menu--card-badge.record-badge:focus-visible {
+  border: 0.5px solid var(--secondary);
 }
 
 .menu--card-badge-info {
@@ -1888,6 +1889,11 @@ img {
   text-decoration: none;
 }
 
-.menu--card-badge-info a:hover {
+.menu--card-badge-info a:hover,
+.menu--card-badge-info a:focus-visible {
   text-decoration: underline;
+  outline: none;
+}
+.badge-button-wrapper {
+  /* width: 60px; */
 }

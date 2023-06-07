@@ -7,6 +7,7 @@ import paintings from '../data/paintings';
 import getNewWindowPos from '../helpers/getNewWindowPos';
 import ZoomWindow from './ZoomWindow';
 import flagIcon from '../assets/icons/flag.svg';
+// import getCursorPos from '../helpers/getCursorPos';
 
 export default function Viewer({
   painting,
@@ -29,7 +30,6 @@ export default function Viewer({
 
   // assess window.innerHeight and window.innerWidth;
   // if ratio of img (height:width) exceeds window, height: 100%, width: auto
-
   const windowRatio = window.innerHeight / window.innerWidth;
   const imgRatio = imgProperties
     ? imgProperties.height / imgProperties.width
@@ -61,7 +61,7 @@ export default function Viewer({
       : (value - relativeWindow.top) / relativeWindow.height;
   }
 
-  function handleClick(e) {
+  function handleClick() {
     // FOR ADDING TARGET COORDINATES TO DATABASE
     // const cursorPos = getCursorPos(e, imgProperties);
     // const x = cursorPos.x / imgProperties.width;

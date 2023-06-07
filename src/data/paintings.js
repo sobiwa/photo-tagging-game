@@ -65,8 +65,7 @@ const paintings = [
     img: lastJudgment,
     targets: [
       { dbName: 'bugman', description: 'Bug-like demon', img: bugman },
-      // TODO: find his coordinates
-      // { dbName: '', description: 'Man saluting', img: salute },
+      { dbName: 'salute', description: 'Man saluting', img: salute },
       { dbName: 'unicorn', description: 'Unicorn rider', img: unicornRider },
       { dbName: 'wizard', description: 'Wizard', img: wizard },
     ],
