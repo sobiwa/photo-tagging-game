@@ -40,6 +40,7 @@ route will automatically register the email as verified and update leaderboards
 accordingly.
 
 # Firestore rules:
+```
 rules_version = '2';
 service cloud.firestore {
 match /databases/{database}/documents {
@@ -98,3 +99,4 @@ match /databases/{database}/documents {
   }
 }
 }
+```
