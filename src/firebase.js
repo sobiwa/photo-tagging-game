@@ -106,10 +106,10 @@ export async function reauthEmail(password) {
 
 export async function anonLogin() {
   try {
-    await signInAnonymously(auth);
+    const anon = await signInAnonymously(auth);
+    return anon.user;
   } catch (err) {
-    // app works if this doesn't
-    console.log(err.message);
+    throw new Error(`Anonymous sign in failed: ${err.message}`);
   }
 }
 

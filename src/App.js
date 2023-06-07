@@ -6,6 +6,7 @@ import {
   auth,
   anonLogin,
   userVerificationComplete,
+  resetHighScores,
 } from './firebase';
 import Loading from './components/Loading';
 import UserHeader from './components/UserHeader';
@@ -27,8 +28,13 @@ export default function App() {
   useEffect(() => {
     async function authStateObserver(firebaseUser) {
       if (firebaseUser === null) {
-        anonLogin();
-        return;
+        try {
+          await anonLogin();
+          return;
+        } catch (err) {
+          setUser(null);
+          return;
+        }
       }
       if (firebaseUser.isAnonymous) {
         setUser({

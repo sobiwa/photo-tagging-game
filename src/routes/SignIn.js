@@ -24,7 +24,6 @@ export async function action({ request }) {
   }
 }
 
-// const LoginForm = forwardRef(({ close }, ref) => {
 export default function SignIn() {
   const ref = useRef(null);
   const [email, setEmail] = useState('');
@@ -42,9 +41,6 @@ export default function SignIn() {
     switch (response) {
       case undefined:
         return {};
-      // case 'success':
-      //   navigate(-1);
-      //   return {};
       case 'auth/wrong-password':
         return {
           handled: true,
@@ -74,7 +70,6 @@ export default function SignIn() {
     ref.current.showModal();
   }, []);
 
-  // TODO: handle auth/email-already-in-use when user signs up manually with gmail email
   async function handleGoogle() {
     try {
       await googleLogin();
