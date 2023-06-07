@@ -2,6 +2,7 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable no-nested-ternary */
 import { useState, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import ZoomLens from './ZoomLens';
 import paintings from '../data/paintings';
 import getNewWindowPos from '../helpers/getNewWindowPos';
@@ -61,12 +62,17 @@ export default function Viewer({
       : (value - relativeWindow.top) / relativeWindow.height;
   }
 
-  function handleClick() {
+  function handleClick(e) {
     // FOR ADDING TARGET COORDINATES TO DATABASE
     // const cursorPos = getCursorPos(e, imgProperties);
     // const x = cursorPos.x / imgProperties.width;
     // const y = cursorPos.y / imgProperties.height;
     // console.log(x, y);
+    if (window.innerWidth < 800) {
+      flushSync(() => {
+        handleMoveLens(e);
+      });
+    }
     const { top, right, bottom, left } =
       reticleRef.current.getBoundingClientRect();
     const reticleRelativePosition = {
@@ -115,18 +121,18 @@ export default function Viewer({
             </div>
           ))}
         </div>
-          <ZoomWindow
-            ref={zoomWindowRef}
-            visible={zoomWindowVisible}
-            lens={zoomLensRef.current}
-            lensReticle={reticleRef.current}
-            lensPosition={lensPosition}
-            container={viewerContainerRef.current}
-            imgProperties={imgProperties}
-            imgSrc={imgSrc}
-            initSize={200}
-            maxSize={400}
-          />
+        <ZoomWindow
+          ref={zoomWindowRef}
+          visible={zoomWindowVisible}
+          lens={zoomLensRef.current}
+          lensReticle={reticleRef.current}
+          lensPosition={lensPosition}
+          container={viewerContainerRef.current}
+          imgProperties={imgProperties}
+          imgSrc={imgSrc}
+          initSize={200}
+          maxSize={400}
+        />
       </div>
     </div>
   );
