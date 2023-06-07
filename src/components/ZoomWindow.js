@@ -53,7 +53,7 @@ const ZoomWindow = forwardRef(
         : null;
 
     const handleMousedown = (e) => {
-      // e.preventDefault();
+      e.preventDefault();
       dragStartPos.current = getCursorPos(
         e,
         ref.current.getBoundingClientRect()
@@ -64,7 +64,7 @@ const ZoomWindow = forwardRef(
 
     const handleMousemove = (e) => {
       if (!zoomWindowDragging.current) return;
-      // e.preventDefault();
+      e.preventDefault();
       const newPos = getNewWindowPos(
         ref.current.getBoundingClientRect(),
         container,
@@ -79,6 +79,7 @@ const ZoomWindow = forwardRef(
     };
 
     const handleMousedownResize = (e) => {
+      e.preventDefault();
       e.stopPropagation();
       zoomWindowOriginalSize.current = ref.current.offsetWidth;
       const { pageX: x, pageY: y } = e;
@@ -88,6 +89,7 @@ const ZoomWindow = forwardRef(
     };
 
     const handleMousemoveResize = (e) => {
+      e.preventDefault();
       e.stopPropagation();
       if (!zoomWindowResizing.current) return;
       const { pageX: x, pageY: y } = e;
@@ -110,6 +112,7 @@ const ZoomWindow = forwardRef(
         ref={ref}
         className='viewer--zoom-window'
         style={{
+          touchAction: 'none',
           visibility: visible || visible === undefined ? 'visible' : 'hidden',
           width: zoomWindowSize,
           height: zoomWindowSize,
