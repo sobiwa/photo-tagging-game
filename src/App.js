@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { onIdTokenChanged } from 'firebase/auth';
 import { auth, anonLogin, userVerificationComplete } from './firebase';
 import Loading from './components/Loading';
@@ -13,6 +13,8 @@ import targetIcon from './assets/icons/target.svg';
 export default function App() {
   const navigation = useNavigation();
   const navigate = useNavigate();
+
+  const alertRef = useRef();
 
   const [isLoading, setIsLoading] = useState(false);
   const [navigationLoad, setNavigationLoad] = useState(false);
@@ -80,15 +82,42 @@ export default function App() {
     setIsLoading(true);
     navigate(id);
   }
+
+  function handleLogoClick() {
+    if (game && game.ranked) {
+      alertRef.current.showModal();
+    } else {
+      navigate('/');
+    }
+  }
   const time = timer ? formatTimer(timer.current - timer.start) : '00:00:00';
 
   return (
     <div className='root-container'>
       {isLoading && <Loading />}
       <div className='header'>
-        <Link to='/' className='logo-container'>
+        <button
+          type='button'
+          className='logo-container'
+          onClick={handleLogoClick}
+        >
           <img src={waldoLogo} alt="Where's waldo?" />
-        </Link>
+        </button>
+        <dialog ref={alertRef} className='alert'>
+          <p>
+            Are you sure you would like to return home? Game will be marked as
+            incomplete and you will forfeit eligibility to appear on this
+            painting&apos;s leaderboard.
+          </p>
+          <div className='form--button-container'>
+            <Link to='/' onClick={() => alertRef.current.close()}>
+              Home
+            </Link>
+            <button type='button' onClick={() => alertRef.current.close()}>
+              Cancel
+            </button>
+          </div>
+        </dialog>
         {!game && <UserHeader user={user?.firebase} />}
         {game && (
           <div className='game-header'>

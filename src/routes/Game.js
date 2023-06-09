@@ -110,6 +110,7 @@ export default function Game() {
         setTimerActive(true);
         if (response === 'time logged') {
           ranked.current = true;
+          setGame((prev) => ({ ...prev, ranked }));
         }
       } catch (err) {
         setError(err.message);

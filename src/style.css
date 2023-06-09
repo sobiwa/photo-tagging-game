@@ -178,6 +178,7 @@ body {
   padding: clamp(5px, var(--header-height) * 0.2, 16px);
   transition: scale 0.3s;
   cursor: pointer;
+  background-color: transparent;
 }
 
 .logo-container:hover {
@@ -1733,25 +1734,11 @@ img {
   transform: translateZ(calc(var(--depth) * -1));
 }
 
-/* causes too much glitchyness between cards
-/* @keyframes forward {
-  from {
-    z-index: initial;
-  }
-  to {
-    z-index: 5;
-  }
-} */
-
 .high-score-link-container .high-score-link:hover {
   z-index: 5;
-  /* animation-name: forward;
-  animation-duration: 0.1s;
-  animation-fill-mode: both; */
 }
 
 .high-score-link:not(:first-child):hover .cube {
-  /* transition: 0.2s; */
   animation-name: present;
   animation-duration: 0.2s;
   animation-fill-mode: both;
@@ -1774,12 +1761,10 @@ img {
 .leaderboard-wrapper {
   padding: 20px;
   background-color: #dfbc77dc;
-  /* border-radius: 8px; */
   margin: 30px 0 50px 0;
 }
 
 .leaderboard {
-  /* color: var(--secondary); */
   font-size: min(calc(0.7rem + 0.5vw), 1rem);
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -1834,7 +1819,6 @@ img {
   align-items: flex-start;
 }
 .leaderboard-container .menu--card {
-  /* width: clamp(300px, 25vw, 500px); */
   width: min(350px, 90vw);
 }
 
@@ -1880,12 +1864,6 @@ img {
   font-size: 1rem;
   color: var(--secondary);
 }
-
-/* .login-warning button:nth-child(2) {
-  width: fit-content;
-  margin-top: 8px;
-  margin-inline: auto;
-} */
 
 .login-warning a:hover {
   text-decoration: none;
@@ -1987,4 +1965,19 @@ img {
 
 .mobile--waldo-tracker button img {
   height: 100%;
+}
+
+.alert {
+  background-color: var(--primary);
+  border: none;
+  padding: 16px;
+  margin: auto;
+  text-align: center;
+  border-radius: 8px;
+  width: min(300px, 100%);
+  color: var(--secondary);
+}
+
+.alert::backdrop {
+  background-color: #903a3eba;
 }
