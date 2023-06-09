@@ -2,17 +2,13 @@
 import { Outlet, useNavigate, Link, useNavigation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { onIdTokenChanged } from 'firebase/auth';
-import {
-  auth,
-  anonLogin,
-  userVerificationComplete,
-  resetHighScores,
-} from './firebase';
+import { auth, anonLogin, userVerificationComplete } from './firebase';
 import Loading from './components/Loading';
 import UserHeader from './components/UserHeader';
 import waldoLogo from './assets/waldo.svg';
 import Eye from './components/Eye';
 import formatTimer from './helpers/formatTimer';
+import targetIcon from './assets/icons/target.svg';
 
 export default function App() {
   const navigation = useNavigation();
@@ -24,6 +20,7 @@ export default function App() {
   const [timer, setTimer] = useState(null);
   const [user, setUser] = useState(null);
   const [zoomWindowVisible, setZoomWindowVisible] = useState(true);
+  const [showMobileTracker, setShowMobileTracker] = useState(false);
 
   useEffect(() => {
     async function authStateObserver(firebaseUser) {
@@ -102,22 +99,58 @@ export default function App() {
               open={zoomWindowVisible}
             />
             <div className='timer'>{time}</div>
-            <div className='waldo-tracker'>
-              {game.targets.map((target) => (
-                <div
-                  className='header--target'
-                  key={target.dbName}
-                  style={{ opacity: target.found ? 0.3 : 1 }}
+            {window.innerWidth < 450 ? (
+              <div className='mobile--waldo-tracker'>
+                <button
+                  type='button'
+                  aria-label='display targets'
+                  onClick={() => setShowMobileTracker((prev) => !prev)}
                 >
-                  <div className='target-img'>
-                    <img src={target.img} alt={target.description} />
-                    <span className='header--target-description'>
-                      {target.description}
-                    </span>
+                  <img src={targetIcon} alt='target icon' />
+                </button>
+                <div
+                  className={`drop-down-wrapper ${
+                    showMobileTracker ? 'open' : ''
+                  }`}
+                >
+                  <div className='drop-down'>
+                    <div className='waldo-tracker'>
+                      {game.targets.map((target) => (
+                        <div
+                          className='header--target'
+                          key={target.dbName}
+                          style={{ opacity: target.found ? 0.3 : 1 }}
+                        >
+                          <div className='target-img'>
+                            <img src={target.img} alt={target.description} />
+                            <span className='header--target-description'>
+                              {target.description}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className='waldo-tracker'>
+                {game.targets.map((target) => (
+                  <div
+                    className='header--target'
+                    key={target.dbName}
+                    style={{ opacity: target.found ? 0.3 : 1 }}
+                  >
+                    <div className='target-img'>
+                      <img src={target.img} alt={target.description} />
+                      <span className='header--target-description'>
+                        {target.description}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

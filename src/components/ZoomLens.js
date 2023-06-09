@@ -56,6 +56,7 @@ const ZoomLens = forwardRef(
         className='viewer--zoom-lens'
         onPointerMove={handleMove}
         style={{
+          touchAction: 'none',
           width: `${lensSize}px`,
           height: `${lensSize}px`,
           left: `${position.x}px`,

@@ -7,7 +7,7 @@ import ZoomLens from './ZoomLens';
 import paintings from '../data/paintings';
 import getNewWindowPos from '../helpers/getNewWindowPos';
 import ZoomWindow from './ZoomWindow';
-import flagIcon from '../assets/icons/flag.svg';
+import flagIcon from '../assets/icons/ultra-flag.svg';
 // import getCursorPos from '../helpers/getCursorPos';
 
 export default function Viewer({
